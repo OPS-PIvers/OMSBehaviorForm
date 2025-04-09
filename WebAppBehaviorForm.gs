@@ -241,15 +241,20 @@ function createImprovedBehaviorForm() {
       background-color: #ffeeba;
       border-color: #ffdf7e;
     }
+    /* Update these styles to use solid colors for selected state */
     .quick-action-button.selected {
       background-color: #007bff;
       border-color: #007bff;
       color: #ffffff;
+      font-weight: 600; /* Make text slightly bolder */
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Add subtle shadow for depth */
     }
     .quick-action-button.stop-think.selected {
       background-color: #f0ad4e;
       border-color: #f0ad4e;
       color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
 
     /* --- Other UI Elements --- */
@@ -889,7 +894,7 @@ function createImprovedBehaviorForm() {
   }
 
   /**
-   * Handles quick action button clicks
+   * Handles quick action button clicks - fixed for multiple selections
    */
   function handleQuickActionClick(event) {
     const btn = event.target;
@@ -897,42 +902,28 @@ function createImprovedBehaviorForm() {
     const pillarName = btn.dataset.pillar;
     const behaviorText = btn.dataset.behavior;
     
-    // First, set the correct behavior type (good news or stop & think)
+    // First, ensure we're in the correct behavior type (good news or stop & think)
     if (actionType !== currentBehaviorType) {
       // Find and click the correct behavior type button
       const typeBtn = document.querySelector('.toggle-button[data-type="' + actionType + '"]');
       if (typeBtn) {
         typeBtn.click(); // This will update currentBehaviorType through existing event listeners
+        
+        // After switching, deselect all quick actions from the previous type
+        document.querySelectorAll('.quick-action-button').forEach(b => {
+          b.classList.remove('selected');
+        });
+        
+        // Set just this button as selected
+        btn.classList.add('selected');
       }
-    }
-    
-    // Clear existing selections
-    const wasSelected = btn.classList.contains('selected');
-    
-    // Clear all quick action selections
-    document.querySelectorAll('.quick-action-button').forEach(b => {
-      b.classList.remove('selected');
-    });
-    
-    // If this button wasn't already selected, proceed with selections
-    if (!wasSelected) {
-      // Mark this button as selected
-      btn.classList.add('selected');
-      
-      // Now select the appropriate pillar
-      selectPillarByName(pillarName);
-      
-      // Wait for behavior buttons to be generated, then select the behavior
-      setTimeout(() => {
-        selectBehaviorByText(behaviorText);
-      }, 100);
     } else {
-      // If it was already selected, we're deselecting it
-      // Reset pillar and behavior selections
-      clearPillarSelections();
-      document.getElementById('behaviorButtonsContainer').innerHTML = 
-        '<p style="color: #6c757d; font-style: italic;">Select a pillar above to see relevant behaviors.</p>';
+      // Toggle this button's selected state
+      btn.classList.toggle('selected');
     }
+    
+    // Process all currently selected quick actions
+    processSelectedQuickActions();
   }
 
   /**
@@ -952,18 +943,81 @@ function createImprovedBehaviorForm() {
   }
 
   /**
-   * Selects a pillar by name
+   * Processes all currently selected quick actions
+   * Updates pillar and behavior selections based on all selected quick actions
+   * FIXED to properly handle multiple selections
    */
-  function selectPillarByName(pillarName) {
-    // First clear existing pillar selections
-    clearPillarSelections();
+  function processSelectedQuickActions() {
+    // Get all currently selected quick actions
+    const selectedQuickActions = document.querySelectorAll('.quick-action-button.selected');
     
-    // Find and click the pillar button with the matching name
+    // If none are selected, clear all pillar and behavior selections
+    if (selectedQuickActions.length === 0) {
+      clearPillarSelections();
+      document.getElementById('behaviorButtonsContainer').innerHTML = 
+        '<p style="color: #6c757d; font-style: italic;">Select a pillar above to see relevant behaviors.</p>';
+      return;
+    }
+    
+    // Track pillars and behaviors to select
+    const pillarsToSelect = new Set();
+    const behaviorsToSelect = [];
+    
+    // Collect all pillars and behaviors from selected quick actions
+    selectedQuickActions.forEach(btn => {
+      const pillarName = btn.dataset.pillar;
+      const behaviorText = btn.dataset.behavior;
+      
+      if (pillarName) {
+        pillarsToSelect.add(pillarName);
+      }
+      
+      if (behaviorText) {
+        behaviorsToSelect.push({
+          pillar: pillarName,
+          behavior: behaviorText
+        });
+      }
+    });
+    
+    // Get currently selected pillars
+    const currentlySelectedPillars = getSelectedPillars();
+    
+    // Add pillars that need to be added (not already selected)
+    pillarsToSelect.forEach(pillarName => {
+      if (!currentlySelectedPillars.includes(pillarName)) {
+        selectPillarByName(pillarName, false); // false = don't clear other selections
+      }
+    });
+    
+    // Short delay to ensure behavior buttons are updated
+    setTimeout(() => {
+      // Select all the behaviors that should be selected
+      behaviorsToSelect.forEach(behaviorData => {
+        selectBehaviorByText(behaviorData.behavior);
+      });
+    }, 150); // Slightly longer delay to ensure pillar updates are complete
+  }
+
+
+  /**
+   * Selects a pillar by name - modified to optionally preserve other selections
+   * @param {string} pillarName - The pillar name to select
+   * @param {boolean} [clearOthers=true] - Whether to clear other pillar selections
+   */
+  function selectPillarByName(pillarName, clearOthers = true) {
+    // Optionally clear existing pillar selections
+    if (clearOthers) {
+      clearPillarSelections();
+    }
+    
+    // Find the pillar button with the matching name
     const pillarBtn = document.querySelector('.pillar-button[data-pillar-name="' + pillarName + '"]');
-    if (pillarBtn) {
+    if (pillarBtn && !pillarBtn.classList.contains('active')) {
       pillarBtn.click(); // This will update styles and behavior buttons through existing event handler
     }
   }
+
 
   /**
    * Clears all pillar selections
@@ -975,21 +1029,24 @@ function createImprovedBehaviorForm() {
   }
 
   /**
-   * Selects a behavior by matching text
+   * Selects a behavior by matching text - with improved matching
    */
   function selectBehaviorByText(behaviorText) {
     let found = false;
     
     document.querySelectorAll('#behaviorButtonsContainer .behavior-button').forEach(btn => {
-      // Try exact match first
-      if (btn.dataset.value === behaviorText) {
-        btn.click(); // This will update the button's active state
-        found = true;
-      }
-      // If not found, try includes match
-      else if (!found && btn.dataset.value && btn.dataset.value.includes(behaviorText)) {
-        btn.click();
-        found = true;
+      // Only attempt to select if not already selected
+      if (!btn.classList.contains('active')) {
+        // Try exact match first
+        if (btn.dataset.value === behaviorText) {
+          btn.click(); // This will update the button's active state
+          found = true;
+        }
+        // If not found, try includes match
+        else if (!found && btn.dataset.value && btn.dataset.value.includes(behaviorText)) {
+          btn.click();
+          found = true;
+        }
       }
     });
   }
