@@ -200,6 +200,57 @@ function createImprovedBehaviorForm() {
         max-height: 300px;
         overflow-y: auto;
     }
+    .quick-actions-section {
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
+    .quick-actions-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #495057;
+    }
+    .quick-actions-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .quick-action-button {
+      background-color: #f1f9ff;
+      border: 1px solid #b8daff;
+      color: #0056b3;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: normal;
+      text-align: left;
+    }
+    .quick-action-button:hover {
+      background-color: #d7ecff;
+      border-color: #80bdff;
+    }
+    .quick-action-button.stop-think {
+      background-color: #fff3cd;
+      border-color: #ffeeba;
+      color: #856404;
+    }
+    .quick-action-button.stop-think:hover {
+      background-color: #ffeeba;
+      border-color: #ffdf7e;
+    }
+    .quick-action-button.selected {
+      background-color: #007bff;
+      border-color: #007bff;
+      color: #ffffff;
+    }
+    .quick-action-button.stop-think.selected {
+      background-color: #f0ad4e;
+      border-color: #f0ad4e;
+      color: #ffffff;
+    }
 
     /* --- Other UI Elements --- */
     .other-input { display: none; margin-top: 10px; }
@@ -301,7 +352,6 @@ function createImprovedBehaviorForm() {
         <input type="hidden" id="behaviorType" name="behaviorType" value="goodnews">
         <div class="note-box">Select whether you are documenting positive behavior (Good News) or behavior that needs improvement (Stop & Think). This determines which behaviors are shown later.</div>
       </div>
-
       <!-- Step 2: Student Info -->
       <div class="form-section">
         <h2>Step 2: Student Information</h2>
@@ -327,7 +377,6 @@ function createImprovedBehaviorForm() {
           </div>
          </div>
       </div>
-
       <!-- Step 3: Parent Info -->
       <div class="form-section">
         <h2>Step 3: Parent Information (auto-filled)</h2>
@@ -342,7 +391,26 @@ function createImprovedBehaviorForm() {
           <div class="form-group"><label for="parent2Email">Parent 2 Email</label><input type="email" id="parent2Email" name="parent2Email" readonly></div>
         </div>
       </div>
-
+      <div class="form-section" id="quickActionsSection">
+        <h2>Quick Actions</h2>
+        <div class="note-box">Click a quick action below to automatically select the relevant pillars and behaviors.</div>
+        
+        <!-- Good News Quick Actions -->
+        <div id="goodNewsQuickActions" class="quick-actions-section">
+          <div class="quick-actions-title">✅ Good News Quick Actions:</div>
+          <div class="quick-actions-container">
+            <!-- Quick action buttons will be generated here by JavaScript -->
+          </div>
+        </div>
+        
+        <!-- Stop and Think Quick Actions -->
+        <div id="stopThinkQuickActions" class="quick-actions-section">
+          <div class="quick-actions-title">⚠️ Stop & Think Quick Actions:</div>
+          <div class="quick-actions-container">
+            <!-- Quick action buttons will be generated here by JavaScript -->
+          </div>
+        </div>
+      </div>
       <!-- Step 4: Select Pillars -->
       <div class="form-section">
         <h2>Step 4: Select Character Pillar(s)*</h2>
@@ -444,6 +512,79 @@ function createImprovedBehaviorForm() {
       color: '#333',         // Matches CSS .behavior-button default
       borderColor: '#ccc'     // Matches CSS .behavior-button default
   };
+  
+  // Define mappings for quick actions to pillars and behaviors
+  const QUICK_ACTIONS_MAPPING = {
+    goodnews: [
+      {
+        name: "Helping others",
+        pillar: "Caring",
+        behavior: "Offering help or support to peers in need"
+      },
+      {
+        name: "Showing kindness",
+        pillar: "Caring",
+        behavior: "Using kind words and giving genuine compliments"
+      },
+      {
+        name: "Following directions",
+        pillar: "Respect",
+        behavior: "Following rules and directions willingly"
+      },
+      {
+        name: "Participating in class",
+        pillar: "Citizenship",
+        behavior: "Participating positively in school events and activities"
+      },
+      {
+        name: "Demonstrating effort in school work",
+        pillar: "Responsibility",
+        behavior: "Persisting through challenges and seeking help appropriately"
+      }
+    ],
+    stopthink: [
+      {
+        name: "Blurting",
+        pillar: "Respect",
+        behavior: "Interrupting or talking over others frequently"
+      },
+      {
+        name: "Calling out classmates",
+        pillar: "Respect",
+        behavior: "Using disrespectful, rude, or offensive language"
+      },
+      {
+        name: "Needing frequent reminders",
+        pillar: "Responsibility",
+        behavior: "Often forgetting necessary assignments or materials"
+      },
+      {
+        name: "Engaging in physical horseplay",
+        pillar: "Respect", 
+        behavior: "Showing disrespect through tone, gestures, or expressions"
+      },
+      {
+        name: "Running",
+        pillar: "Citizenship",
+        behavior: "Breaking or consistently ignoring established rules"
+      },
+      {
+        name: "Eating in class",
+        pillar: "Citizenship",
+        behavior: "Breaking or consistently ignoring established rules"
+      },
+      {
+        name: "Arguing",
+        pillar: "Respect",
+        behavior: "Showing disrespect through tone, gestures, or expressions"
+      },
+      {
+        name: "Being loud or screaming",
+        pillar: "Citizenship",
+        behavior: "Disrupting the learning environment for others"
+      }
+    ]
+  };
 
   // --- Helper Functions ---
   function showStatus(message, type) {
@@ -544,6 +685,11 @@ function createImprovedBehaviorForm() {
       }
       
       updateCommentSuggestions(); // Update comment suggestions based on new selections
+      
+      // Clear any selected quick actions when pillar selection changes
+      document.querySelectorAll('.quick-action-button').forEach(btn => {
+        btn.classList.remove('selected');
+      });
   }
 
   /**
@@ -683,6 +829,11 @@ function createImprovedBehaviorForm() {
       
       // Update comment suggestions based on new behavior selection
       updateCommentSuggestions();
+      
+      // Clear any selected quick actions when behavior selection changes directly
+      document.querySelectorAll('.quick-action-button').forEach(btn => {
+        btn.classList.remove('selected');
+      });
   }
 
   function getSelectedPillars() {
@@ -693,6 +844,164 @@ function createImprovedBehaviorForm() {
   function getSelectedBehaviors() {
       const activeBehaviorBtns = document.querySelectorAll('#behaviorButtonsContainer .behavior-button.active');
       return Array.from(activeBehaviorBtns).map(btn => btn.dataset.value);
+  }
+  
+  /**
+   * Generates quick action buttons based on the defined mappings
+   */
+  function generateQuickActionButtons() {
+    // Generate Good News quick actions
+    const goodNewsContainer = document.querySelector('#goodNewsQuickActions .quick-actions-container');
+    if (goodNewsContainer) {
+      goodNewsContainer.innerHTML = ''; // Clear container
+      
+      QUICK_ACTIONS_MAPPING.goodnews.forEach(action => {
+        const btn = document.createElement('div');
+        btn.className = 'quick-action-button';
+        btn.textContent = action.name;
+        btn.dataset.type = 'goodnews';
+        btn.dataset.pillar = action.pillar;
+        btn.dataset.behavior = action.behavior;
+        btn.addEventListener('click', handleQuickActionClick);
+        goodNewsContainer.appendChild(btn);
+      });
+    }
+    
+    // Generate Stop & Think quick actions
+    const stopThinkContainer = document.querySelector('#stopThinkQuickActions .quick-actions-container');
+    if (stopThinkContainer) {
+      stopThinkContainer.innerHTML = ''; // Clear container
+      
+      QUICK_ACTIONS_MAPPING.stopthink.forEach(action => {
+        const btn = document.createElement('div');
+        btn.className = 'quick-action-button stop-think';
+        btn.textContent = action.name;
+        btn.dataset.type = 'stopthink';
+        btn.dataset.pillar = action.pillar;
+        btn.dataset.behavior = action.behavior;
+        btn.addEventListener('click', handleQuickActionClick);
+        stopThinkContainer.appendChild(btn);
+      });
+    }
+    
+    // Show or hide sections based on current behavior type
+    updateQuickActionVisibility();
+  }
+
+  /**
+   * Handles quick action button clicks
+   */
+  function handleQuickActionClick(event) {
+    const btn = event.target;
+    const actionType = btn.dataset.type;
+    const pillarName = btn.dataset.pillar;
+    const behaviorText = btn.dataset.behavior;
+    
+    // First, set the correct behavior type (good news or stop & think)
+    if (actionType !== currentBehaviorType) {
+      // Find and click the correct behavior type button
+      const typeBtn = document.querySelector('.toggle-button[data-type="' + actionType + '"]');
+      if (typeBtn) {
+        typeBtn.click(); // This will update currentBehaviorType through existing event listeners
+      }
+    }
+    
+    // Clear existing selections
+    const wasSelected = btn.classList.contains('selected');
+    
+    // Clear all quick action selections
+    document.querySelectorAll('.quick-action-button').forEach(b => {
+      b.classList.remove('selected');
+    });
+    
+    // If this button wasn't already selected, proceed with selections
+    if (!wasSelected) {
+      // Mark this button as selected
+      btn.classList.add('selected');
+      
+      // Now select the appropriate pillar
+      selectPillarByName(pillarName);
+      
+      // Wait for behavior buttons to be generated, then select the behavior
+      setTimeout(() => {
+        selectBehaviorByText(behaviorText);
+      }, 100);
+    } else {
+      // If it was already selected, we're deselecting it
+      // Reset pillar and behavior selections
+      clearPillarSelections();
+      document.getElementById('behaviorButtonsContainer').innerHTML = 
+        '<p style="color: #6c757d; font-style: italic;">Select a pillar above to see relevant behaviors.</p>';
+    }
+  }
+
+  /**
+   * Updates visibility of quick action sections based on current behavior type
+   */
+  function updateQuickActionVisibility() {
+    const goodNewsSection = document.getElementById('goodNewsQuickActions');
+    const stopThinkSection = document.getElementById('stopThinkQuickActions');
+    
+    if (currentBehaviorType === 'goodnews') {
+      if (goodNewsSection) goodNewsSection.style.display = 'block';
+      if (stopThinkSection) stopThinkSection.style.display = 'none';
+    } else {
+      if (goodNewsSection) goodNewsSection.style.display = 'none';
+      if (stopThinkSection) stopThinkSection.style.display = 'block';
+    }
+  }
+
+  /**
+   * Selects a pillar by name
+   */
+  function selectPillarByName(pillarName) {
+    // First clear existing pillar selections
+    clearPillarSelections();
+    
+    // Find and click the pillar button with the matching name
+    const pillarBtn = document.querySelector('.pillar-button[data-pillar-name="' + pillarName + '"]');
+    if (pillarBtn) {
+      pillarBtn.click(); // This will update styles and behavior buttons through existing event handler
+    }
+  }
+
+  /**
+   * Clears all pillar selections
+   */
+  function clearPillarSelections() {
+    document.querySelectorAll('#pillarButtonsContainer .pillar-button.active').forEach(btn => {
+      btn.click(); // Click will toggle off through existing event handler
+    });
+  }
+
+  /**
+   * Selects a behavior by matching text
+   */
+  function selectBehaviorByText(behaviorText) {
+    let found = false;
+    
+    document.querySelectorAll('#behaviorButtonsContainer .behavior-button').forEach(btn => {
+      // Try exact match first
+      if (btn.dataset.value === behaviorText) {
+        btn.click(); // This will update the button's active state
+        found = true;
+      }
+      // If not found, try includes match
+      else if (!found && btn.dataset.value && btn.dataset.value.includes(behaviorText)) {
+        btn.click();
+        found = true;
+      }
+    });
+  }
+
+  /**
+   * Reset quick action selections when form is reset
+   */
+  function resetQuickActionSelections() {
+    document.querySelectorAll('.quick-action-button').forEach(btn => {
+      btn.classList.remove('selected');
+    });
+    updateQuickActionVisibility();
   }
 
   function resetFormSelections() {
@@ -711,6 +1020,9 @@ function createImprovedBehaviorForm() {
             btn.style.borderColor = pillarColor.bg; // Set border color to pillar color
         }
     });
+    
+    // Reset quick action selections
+    resetQuickActionSelections();
     
     // Clear behavior selections and container message - keep this part
     document.getElementById('behaviorButtonsContainer').innerHTML = '<p style="color: #6c757d; font-style: italic;">Select a pillar above to see relevant behaviors.</p>';
@@ -747,6 +1059,9 @@ function createImprovedBehaviorForm() {
 
        // Generate pillar buttons on load
        generatePillarButtons();
+       
+       // Generate quick action buttons
+       generateQuickActionButtons();
 
        // Setup behavior type toggle buttons
        const behaviorToggleButtons = document.querySelectorAll('.toggle-button[data-type]');
@@ -762,6 +1077,12 @@ function createImprovedBehaviorForm() {
                    updateBehaviorButtons();
                    // Deselect and restyle any previously selected behaviors
                    clearBehaviorSelectionsStyle();
+                   // Update quick action visibility
+                   updateQuickActionVisibility();
+                   // Clear any selected quick actions
+                   document.querySelectorAll('.quick-action-button').forEach(btn => {
+                     btn.classList.remove('selected');
+                   });
                }
            });
        });
