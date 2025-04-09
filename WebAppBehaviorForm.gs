@@ -151,7 +151,11 @@ function createImprovedBehaviorForm() {
 
     /* --- Behavior Buttons --- */
     #behaviorButtonsContainer { margin-top: 15px; }
-    .behavior-button-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+    .behavior-button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }    
     /* Default Behavior Button Style */
     .behavior-button {
       padding: 8px 12px; 
@@ -163,10 +167,39 @@ function createImprovedBehaviorForm() {
       font-size: 14px;
       border: 1px solid; 
       background-color: #f8f9fa;
-      /* No default color here - will be set by JS */
     }
-    /* NO default .active style here anymore - JS will handle active state via inline styles */
 
+    /* --- Behavior Columns --- */
+    .behavior-columns-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        width: 100%;
+    }
+    .behavior-column {
+        flex: 1 1 200px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        overflow: hidden;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .behavior-column-header {
+        padding: 8px 12px;
+        font-weight: bold;
+        text-align: center;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .behavior-column .behavior-button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
 
     /* --- Other UI Elements --- */
     .other-input { display: none; margin-top: 10px; }
@@ -236,11 +269,12 @@ function createImprovedBehaviorForm() {
     }
 
     @media (max-width: 768px) {
-      .form-row { flex-direction: column; align-items: stretch; }
-      .lookup-button { margin-left: 0; margin-top: 10px; width: 100%; }
-      /* Pillar buttons will scroll horizontally if they exceed width */
-      #pillarButtonsContainer { padding-bottom: 15px; /* More padding for scrollbar */ }
-      .behavior-button-group { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+        .behavior-columns-container {
+            flex-direction: column;
+        }
+        .behavior-column {
+            max-width: 100%;
+        }
     }
     @media (max-width: 480px) {
        h1 { font-size: 20px; }
@@ -464,12 +498,16 @@ function createImprovedBehaviorForm() {
       });
   }
 
+  /**
+   * Handles pillar button clicks
+   * Modified to preserve behavior selections when adding pillars
+   */
   function handlePillarClick(event) {
       const btn = event.target;
       const pillarName = btn.dataset.pillarName;
       const pillarColor = PILLAR_COLORS[pillarName] || PILLAR_COLORS.default;
       
-      // Toggle active state
+      // Determine if we're activating or deactivating this pillar
       const wasActive = btn.classList.contains('active');
       btn.classList.toggle('active');
       
@@ -485,14 +523,42 @@ function createImprovedBehaviorForm() {
       }
       
       updateBehaviorButtons(); // Regenerate behavior buttons
-      clearBehaviorSelectionsStyle(); // Deselect and restyle behaviors
+      
+      // Only clear behavior selections if we're deactivating a pillar
+      if (wasActive) {
+          // We need to handle removal of behaviors associated with this pillar
+          // Remove selections for behaviors that are no longer available
+          document.querySelectorAll('#behaviorButtonsContainer .behavior-button.active').forEach(btn => {
+              const behaviorValue = btn.dataset.value;
+              const behaviorPillar = btn.dataset.pillarName;
+              
+              // If this behavior belongs to the deactivated pillar, deselect it
+              if (behaviorPillar === pillarName) {
+                  btn.classList.remove('active');
+                  const pStyle = PILLAR_COLORS[behaviorPillar] || PILLAR_COLORS.default;
+                  btn.style.backgroundColor = '#f8f9fa';
+                  btn.style.color = pStyle.bg;
+                  btn.style.borderColor = pStyle.bg;
+              }
+          });
+      }
+      
       updateCommentSuggestions(); // Update comment suggestions based on new selections
   }
 
+  /**
+   * Updates behavior buttons based on selected pillars
+   * Modified to organize behaviors in vertical columns by pillar
+   * and preserve selections when adding pillars
+   */
   function updateBehaviorButtons() {
       const behaviorContainer = document.getElementById('behaviorButtonsContainer');
       if (!behaviorContainer) { console.error("Behavior container not found!"); return; }
       const selectedPillarNames = getSelectedPillars();
+      
+      // Save currently selected behaviors before clearing
+      const currentlySelectedBehaviors = getSelectedBehaviors();
+      
       behaviorContainer.innerHTML = ''; // Clear previous buttons/messages
 
       if (selectedPillarNames.length === 0) {
@@ -500,58 +566,80 @@ function createImprovedBehaviorForm() {
           return;
       }
 
-      const behaviorBtnGroup = document.createElement('div');
-      behaviorBtnGroup.classList.add('behavior-button-group');
+      // Create a container for all behavior columns
+      const columnsContainer = document.createElement('div');
+      columnsContainer.className = 'behavior-columns-container';
+      behaviorContainer.appendChild(columnsContainer);
 
-      // Create a map to track which behaviors belong to which pillars
-      const behaviorPillarMap = {};
-
+      // Create each pillar's column of behaviors
       selectedPillarNames.forEach(pillarName => {
           const pillarData = ALL_PILLARS_DATA.find(p => p.name === pillarName);
-          if (pillarData) {
-              const relevantBehaviors = (currentBehaviorType === 'goodnews') ? 
-                  pillarData.positiveBehaviors : pillarData.negativeBehaviors;
-              relevantBehaviors.forEach(behavior => {
-                  if (!behaviorPillarMap[behavior]) {
-                      behaviorPillarMap[behavior] = pillarName; // Associate behavior with pillar
-                  }
-              });
-          }
-      });
-
-      // Convert to sorted array of behaviors
-      const behaviorsToShow = Object.keys(behaviorPillarMap).sort();
-
-      if (behaviorsToShow.length === 0) {
-          behaviorContainer.innerHTML = '<p style="color: #6c757d; font-style: italic;">No specific behaviors listed for the selected pillar(s) in this context.</p>';
-          return;
-      }
-
-      behaviorsToShow.forEach(behavior => {
-          const pillarName = behaviorPillarMap[behavior];
+          if (!pillarData) return;
+          
+          // Get relevant behaviors for this pillar based on behavior type
+          const relevantBehaviors = (currentBehaviorType === 'goodnews') ? 
+              pillarData.positiveBehaviors : 
+              pillarData.negativeBehaviors;
+              
+          if (!relevantBehaviors || relevantBehaviors.length === 0) return;
+          
+          // Sort behaviors alphabetically
+          const sortedBehaviors = [...relevantBehaviors].sort();
+          
+          // Create column container for this pillar
+          const columnDiv = document.createElement('div');
+          columnDiv.className = 'behavior-column';
+          columnDiv.dataset.pillarName = pillarName;
+          
+          // Add pillar header
+          const pillarHeader = document.createElement('div');
+          pillarHeader.className = 'behavior-column-header';
+          pillarHeader.textContent = pillarName;
+          
+          // Apply pillar color to header
           const pillarStyle = PILLAR_COLORS[pillarName] || PILLAR_COLORS.default;
+          pillarHeader.style.backgroundColor = pillarStyle.bg;
+          pillarHeader.style.color = pillarStyle.text;
           
-          const btn = document.createElement('div');
-          btn.classList.add('behavior-button');
-          btn.textContent = behavior;
-          btn.dataset.value = behavior;
+          columnDiv.appendChild(pillarHeader);
           
-          // Store associated pillar and colors
-          btn.dataset.pillarName = pillarName;
-          btn.dataset.activeBg = pillarStyle.bg;
-          btn.dataset.activeText = pillarStyle.text;
-          btn.dataset.activeBorder = pillarStyle.bg;
+          // Create buttons group for this column
+          const behaviorBtnGroup = document.createElement('div');
+          behaviorBtnGroup.className = 'behavior-button-group';
+          
+          // Add behavior buttons to this column
+          sortedBehaviors.forEach(behavior => {
+              const btn = document.createElement('div');
+              btn.classList.add('behavior-button');
+              btn.textContent = behavior;
+              btn.dataset.value = behavior;
+              
+              // Store associated pillar and colors
+              btn.dataset.pillarName = pillarName;
+              btn.dataset.activeBg = pillarStyle.bg;
+              btn.dataset.activeText = pillarStyle.text;
+              btn.dataset.activeBorder = pillarStyle.bg;
 
-          // Apply pillar color to text and border when not selected
-          btn.style.color = pillarStyle.bg; // Use pillar color for text
-          btn.style.borderColor = pillarStyle.bg;
-          btn.style.backgroundColor = '#f8f9fa'; // Light background
+              // Apply pillar color to text and border when not selected
+              btn.style.color = pillarStyle.bg;
+              btn.style.borderColor = pillarStyle.bg;
+              btn.style.backgroundColor = '#f8f9fa';
+              
+              // Check if this behavior was previously selected
+              if (currentlySelectedBehaviors.includes(behavior)) {
+                  btn.classList.add('active');
+                  btn.style.backgroundColor = pillarStyle.bg;
+                  btn.style.color = pillarStyle.text;
+                  btn.style.borderColor = pillarStyle.bg;
+              }
+              
+              btn.addEventListener('click', handleBehaviorClick);
+              behaviorBtnGroup.appendChild(btn);
+          });
           
-          btn.addEventListener('click', handleBehaviorClick);
-          behaviorBtnGroup.appendChild(btn);
+          columnDiv.appendChild(behaviorBtnGroup);
+          columnsContainer.appendChild(columnDiv);
       });
-
-      behaviorContainer.appendChild(behaviorBtnGroup);
   }
 
   /**
