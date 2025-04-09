@@ -80,6 +80,55 @@ function createImprovedBehaviorForm() {
     textarea { resize: vertical; min-height: 80px; }
     button { transition: background-color 0.2s ease-in-out; }
 
+    /* --- Section Headers with Collapsible Functionality --- */
+    h2 { 
+      margin-top: 0; 
+      font-size: 18px; 
+      color: #343a40; 
+      border-bottom: 2px solid #e9ecef; 
+      padding-bottom: 8px; 
+      margin-bottom: 20px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h2::after {
+      content: "▼";
+      font-size: 14px;
+      transition: transform 0.3s;
+      color: #6c757d;
+    }
+    h2.collapsed::after {
+      transform: rotate(-90deg);
+    }
+
+    /* --- Collapsible Sections --- */
+    .form-section {
+      border: 1px solid #e0e0e0; 
+      border-radius: 8px; 
+      padding: 25px; 
+      margin-bottom: 30px; 
+      background: #ffffff; 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: max-height 0.3s ease-out, padding 0.3s ease-out, opacity 0.3s ease-out;
+      overflow: hidden;
+    }
+    .form-section .section-content {
+      transition: opacity 0.3s, transform 0.3s;
+      transform-origin: top;
+    }
+    .form-section.collapsed .section-content {
+      display: none;
+      opacity: 0;
+      transform: scaleY(0);
+    }
+    .form-section.collapsed {
+      padding-top: 15px;
+      padding-bottom: 15px;
+    }
+
     /* --- Layout & Sections --- */
     .form-section { border: 1px solid #e0e0e0; border-radius: 8px; padding: 25px; margin-bottom: 30px; background: #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     .form-row { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; align-items: flex-end; }
@@ -348,142 +397,156 @@ function createImprovedBehaviorForm() {
     <form id="behaviorForm">
 
       <!-- Step 1: Behavior Type -->
-      <div class="form-section">
+      <div class="form-section" id="section-behavior-type">
         <h2>Step 1: Select Behavior Context</h2>
-        <div class="toggle-button-group">
-          <div class="toggle-button active" data-type="goodnews">✅ Good News / Positive Behavior</div>
-          <div class="toggle-button" data-type="stopthink">⚠️ Stop & Think / Needs Improvement</div>
+        <div class="section-content">
+          <div class="toggle-button-group">
+            <div class="toggle-button active" data-type="goodnews">✅ Good News / Positive Behavior</div>
+            <div class="toggle-button" data-type="stopthink">⚠️ Stop & Think / Needs Improvement</div>
+          </div>
+          <input type="hidden" id="behaviorType" name="behaviorType" value="goodnews">
+          <div class="note-box">Select whether you are documenting positive behavior (Good News) or behavior that needs improvement (Stop & Think). This determines which behaviors are shown later.</div>
         </div>
-        <input type="hidden" id="behaviorType" name="behaviorType" value="goodnews">
-        <div class="note-box">Select whether you are documenting positive behavior (Good News) or behavior that needs improvement (Stop & Think). This determines which behaviors are shown later.</div>
       </div>
+
       <!-- Step 2: Student Info -->
-      <div class="form-section">
+      <div class="form-section" id="section-student-info">
         <h2>Step 2: Student Information</h2>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="studentFirst">First Name*</label>
-            <input type="text" id="studentFirst" name="studentFirst" required>
+        <div class="section-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="studentFirst">First Name*</label>
+              <input type="text" id="studentFirst" name="studentFirst" required>
+            </div>
+            <div class="form-group">
+              <label for="studentLast">Last Name*</label>
+              <input type="text" id="studentLast" name="studentLast" required>
+            </div>
+            <button type="button" class="primary-button lookup-button" id="lookupButton">🔍 Look Up</button>
           </div>
-          <div class="form-group">
-            <label for="studentLast">Last Name*</label>
-            <input type="text" id="studentLast" name="studentLast" required>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="studentEmail">Student Email (auto-filled)</label>
+              <input type="email" id="studentEmail" name="studentEmail" readonly>
+            </div>
+            <div class="form-group">
+              <label for="teacherName">Your Name*</label>
+              <input type="text" id="teacherName" name="teacherName" required>
+            </div>
           </div>
-          <button type="button" class="primary-button lookup-button" id="lookupButton">🔍 Look Up</button>
         </div>
-         <div class="form-row">
-           <div class="form-group">
-            <label for="studentEmail">Student Email (auto-filled)</label>
-            <input type="email" id="studentEmail" name="studentEmail" readonly>
-          </div>
-          <div class="form-group">
-            <label for="teacherName">Your Name*</label>
-            <input type="text" id="teacherName" name="teacherName" required>
-          </div>
-         </div>
       </div>
+
       <!-- Step 3: Parent Info -->
-      <div class="form-section">
+      <div class="form-section" id="section-parent-info">
         <h2>Step 3: Parent Information (auto-filled)</h2>
-        <div class="form-row">
-          <div class="form-group"><label for="parent1First">Parent 1 First</label><input type="text" id="parent1First" name="parent1First" readonly></div>
-          <div class="form-group"><label for="parent1Last">Parent 1 Last</label><input type="text" id="parent1Last" name="parent1Last" readonly></div>
-          <div class="form-group"><label for="parent1Email">Parent 1 Email</label><input type="email" id="parent1Email" name="parent1Email" readonly></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label for="parent2First">Parent 2 First</label><input type="text" id="parent2First" name="parent2First" readonly></div>
-          <div class="form-group"><label for="parent2Last">Parent 2 Last</label><input type="text" id="parent2Last" name="parent2Last" readonly></div>
-          <div class="form-group"><label for="parent2Email">Parent 2 Email</label><input type="email" id="parent2Email" name="parent2Email" readonly></div>
+        <div class="section-content">
+          <div class="form-row">
+            <div class="form-group"><label for="parent1First">Parent 1 First</label><input type="text" id="parent1First" name="parent1First" readonly></div>
+            <div class="form-group"><label for="parent1Last">Parent 1 Last</label><input type="text" id="parent1Last" name="parent1Last" readonly></div>
+            <div class="form-group"><label for="parent1Email">Parent 1 Email</label><input type="email" id="parent1Email" name="parent1Email" readonly></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label for="parent2First">Parent 2 First</label><input type="text" id="parent2First" name="parent2First" readonly></div>
+            <div class="form-group"><label for="parent2Last">Parent 2 Last</label><input type="text" id="parent2Last" name="parent2Last" readonly></div>
+            <div class="form-group"><label for="parent2Email">Parent 2 Email</label><input type="email" id="parent2Email" name="parent2Email" readonly></div>
+          </div>
         </div>
       </div>
-      <div class="form-section" id="quickActionsSection">
+
+      <!-- Quick Actions Section -->
+      <div class="form-section" id="section-quick-actions">
         <h2>Quick Actions</h2>
-        <div class="note-box">Click a quick action below to automatically select the relevant pillars and behaviors.</div>
-        
-        <!-- Good News Quick Actions -->
-        <div id="goodNewsQuickActions" class="quick-actions-section">
-          <div class="quick-actions-title">✅ Good News Quick Actions:</div>
-          <div class="quick-actions-container">
-            <!-- Quick action buttons will be generated here by JavaScript -->
-          </div>
-        </div>
-        
-        <!-- Stop and Think Quick Actions -->
-        <div id="stopThinkQuickActions" class="quick-actions-section">
-          <div class="quick-actions-title">⚠️ Stop & Think Quick Actions:</div>
-          <div class="quick-actions-container">
-            <!-- Quick action buttons will be generated here by JavaScript -->
-          </div>
-        </div>
-      </div>
-      <!-- Step 4: Select Pillars -->
-      <div class="form-section">
-        <h2>Step 4: Select Character Pillar(s)*</h2>
-        <div id="pillarButtonsContainer" class="pillar-button-container">
-            <!-- Pillar buttons will be generated here by JavaScript -->
-        </div>
-        <div class="note-box">Select one or more character pillars related to the observed behavior.</div>
-      </div>
-
-       <!-- Step 5: Select Behaviors -->
-      <div class="form-section">
-         <h2>Step 5: Select Specific Behavior(s)*</h2>
-         <div id="behaviorButtonsContainer">
-             <p style="color: #6c757d;"><i>Select a pillar above to see relevant behaviors.</i></p>
-            <!-- Behavior buttons will be generated here by JavaScript -->
-         </div>
-         <!-- "Other" behavior input (optional, can be added if needed) -->
-         <!--
-         <div class="other-input" id="behaviorOtherInput">
-            <label for="behaviorOtherText">Specify "Other" Behavior:</label>
-            <input type="text" placeholder="Please specify behavior" id="behaviorOtherText">
-         </div>
-         -->
-      </div>
-
-       <!-- Step 6: Location & Comments -->
-      <div class="form-section">
-        <h2>Step 6: Location & Comments</h2>
-         <div class="form-group form-group-full">
-           <label>Location*</label>
-           <input type="hidden" id="location" name="location" required> <!-- Hidden input holds final value -->
-           <div class="toggle-button-group location-buttons" data-target="location">
-             <div class="toggle-button location-btn" data-value="Classroom">Classroom</div>
-             <div class="toggle-button location-btn" data-value="Cafeteria">Cafeteria</div>
-             <div class="toggle-button location-btn" data-value="Hallway">Hallway</div>
-             <div class="toggle-button location-btn" data-value="Restroom">Restroom</div>
-             <div class="toggle-button location-btn" data-value="Other" id="locationOtherBtn">Other</div>
-           </div>
-           <div class="other-input" id="locationOtherInput">
-             <input type="text" placeholder="Please specify other location" id="locationOtherText">
-           </div>
-         </div>
-        <div class="form-group form-group-full">
-          <label for="comments">Additional Comments (Optional)</label>
-          <textarea id="comments" name="comments" rows="4" placeholder="Provide specific details about what you observed. These comments will be included in the email."></textarea>
+        <div class="section-content">
+          <div class="note-box">Click a quick action below to automatically select the relevant pillars and behaviors.</div>
           
-          <!-- Suggestions container -->
-          <div class="suggestions-container">
+          <!-- Good News Quick Actions -->
+          <div id="goodNewsQuickActions" class="quick-actions-section">
+            <div class="quick-actions-title">✅ Good News Quick Actions:</div>
+            <div class="quick-actions-container">
+              <!-- Quick action buttons will be generated here by JavaScript -->
+            </div>
+          </div>
+          
+          <!-- Stop and Think Quick Actions -->
+          <div id="stopThinkQuickActions" class="quick-actions-section">
+            <div class="quick-actions-title">⚠️ Stop & Think Quick Actions:</div>
+            <div class="quick-actions-container">
+              <!-- Quick action buttons will be generated here by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Select Pillars -->
+      <div class="form-section" id="section-pillars">
+        <h2>Step 4: Select Character Pillar(s)*</h2>
+        <div class="section-content">
+          <div id="pillarButtonsContainer" class="pillar-button-container">
+              <!-- Pillar buttons will be generated here by JavaScript -->
+          </div>
+          <div class="note-box">Select one or more character pillars related to the observed behavior.</div>
+        </div>
+      </div>
+
+      <!-- Step 5: Select Behaviors -->
+      <div class="form-section" id="section-behaviors">
+        <h2>Step 5: Select Specific Behavior(s)*</h2>
+        <div class="section-content">
+          <div id="behaviorButtonsContainer">
+            <p style="color: #6c757d;"><i>Select a pillar above to see relevant behaviors.</i></p>
+            <!-- Behavior buttons will be generated here by JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Location & Comments -->
+      <div class="form-section" id="section-location-comments">
+        <h2>Step 6: Location & Comments</h2>
+        <div class="section-content">
+          <div class="form-group form-group-full">
+            <label>Location*</label>
+            <input type="hidden" id="location" name="location" required> <!-- Hidden input holds final value -->
+            <div class="toggle-button-group location-buttons" data-target="location">
+              <div class="toggle-button location-btn" data-value="Classroom">Classroom</div>
+              <div class="toggle-button location-btn" data-value="Cafeteria">Cafeteria</div>
+              <div class="toggle-button location-btn" data-value="Hallway">Hallway</div>
+              <div class="toggle-button location-btn" data-value="Restroom">Restroom</div>
+              <div class="toggle-button location-btn" data-value="Other" id="locationOtherBtn">Other</div>
+            </div>
+            <div class="other-input" id="locationOtherInput">
+              <input type="text" placeholder="Please specify other location" id="locationOtherText">
+            </div>
+          </div>
+          <div class="form-group form-group-full">
+            <label for="comments">Additional Comments (Optional)</label>
+            <textarea id="comments" name="comments" rows="4" placeholder="Provide specific details about what you observed. These comments will be included in the email."></textarea>
+            
+            <!-- Suggestions container -->
+            <div class="suggestions-container">
               <div class="suggestions-label">Suggested Comments (Click to Insert):</div>
               <div id="commentSuggestions" class="suggestion-chips">
                 <div class="suggestions-placeholder">Select pillars and behaviors to see personalized suggestions.</div>
               </div>
+            </div>
+            
+            <div class="note-box">Keep comments objective and descriptive. Example: "During group work, Sarah actively listened to her peers' ideas and offered encouragement." or "John shouted out answers several times without raising his hand during the math lesson."</div>
           </div>
-          
-          <div class="note-box">Keep comments objective and descriptive. Example: "During group work, Sarah actively listened to her peers' ideas and offered encouragement." or "John shouted out answers several times without raising his hand during the math lesson."</div>
         </div>
       </div>
 
       <!-- Step 7: Admin CC -->
-       <div class="form-section">
+      <div class="form-section" id="section-admin-cc">
         <h2>Step 7: Notify Administrators (Optional)</h2>
-        <div class="form-group admin-cc-options">
-          <label>CC Administrators on Parent Email:</label>
-          <div class="checkbox-group">
-            <label class="checkbox-label"><input type="checkbox" id="ccPrincipal" name="ccPrincipal" checked> Principal</label>
-            <label class="checkbox-label"><input type="checkbox" id="ccAssociatePrincipal" name="ccAssociatePrincipal" checked> Associate Principal</label>
+        <div class="section-content">
+          <div class="form-group admin-cc-options">
+            <label>CC Administrators on Parent Email:</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label"><input type="checkbox" id="ccPrincipal" name="ccPrincipal" checked> Principal</label>
+              <label class="checkbox-label"><input type="checkbox" id="ccAssociatePrincipal" name="ccAssociatePrincipal" checked> Associate Principal</label>
+            </div>
+            <div class="note-box">Uncheck boxes if you do NOT want specific administrators copied on the email.</div>
           </div>
-           <div class="note-box">Uncheck boxes if you do NOT want specific administrators copied on the email.</div>
         </div>
       </div>
 
@@ -619,6 +682,83 @@ function createImprovedBehaviorForm() {
         if (el) el.value = '';
     });
     // Note: Don't reset CC checkboxes here, let the main reset handle it
+  }
+
+  /**
+   * Toggles the collapsed state of a form section.
+   * @param {HTMLElement} section - The section element to toggle
+   */
+  function toggleSection(section) {
+    const header = section.querySelector('h2');
+    const content = section.querySelector('.section-content');
+    
+    if (section.classList.contains('collapsed')) {
+      // Expand
+      section.classList.remove('collapsed');
+      if (header) header.classList.remove('collapsed');
+      if (content) content.style.display = 'block';
+      
+      // Animate showing content
+      setTimeout(() => {
+        if (content) content.style.opacity = '1';
+        if (content) content.style.transform = 'scaleY(1)';
+      }, 10);
+    } else {
+      // Collapse
+      if (content) content.style.opacity = '0';
+      if (content) content.style.transform = 'scaleY(0)';
+      
+      // Wait for animation to complete before hiding
+      setTimeout(() => {
+        section.classList.add('collapsed');
+        if (header) header.classList.add('collapsed');
+        if (content) content.style.display = 'none';
+      }, 200);
+    }
+  }
+
+  /**
+   * Initializes the collapsible sections functionality
+   */
+  function initCollapsibleSections() {
+    document.querySelectorAll('.form-section').forEach(section => {
+      const header = section.querySelector('h2');
+      if (header) {
+        header.addEventListener('click', (e) => {
+          // Don't toggle if clicking on a form element inside the header (if any)
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON') {
+            return;
+          }
+          toggleSection(section);
+        });
+      }
+    });
+  }
+
+  /**
+   * Collapses specified sections by ID
+   * @param {Array<string>} sectionIds - Array of section IDs to collapse
+   */
+  function collapseSections(sectionIds) {
+    sectionIds.forEach(id => {
+      const section = document.getElementById(id);
+      if (section && !section.classList.contains('collapsed')) {
+        toggleSection(section);
+      }
+    });
+  }
+
+  /**
+   * Expands specified sections by ID
+   * @param {Array<string>} sectionIds - Array of section IDs to expand
+   */
+  function expandSections(sectionIds) {
+    sectionIds.forEach(id => {
+      const section = document.getElementById(id);
+      if (section && section.classList.contains('collapsed')) {
+        toggleSection(section);
+      }
+    });
   }
 
   // --- Pillar & Behavior Button Generation/Handling ---
@@ -1062,7 +1202,7 @@ function createImprovedBehaviorForm() {
   }
 
   function resetFormSelections() {
-    // Clear pillar selections - update this part
+    // Clear pillar selections
     document.querySelectorAll('#pillarButtonsContainer .pillar-button').forEach(btn => {
         // Remove active class
         btn.classList.remove('active');
@@ -1081,13 +1221,12 @@ function createImprovedBehaviorForm() {
     // Reset quick action selections
     resetQuickActionSelections();
     
-    // Clear behavior selections and container message - keep this part
+    // Clear behavior selections and container message
     document.getElementById('behaviorButtonsContainer').innerHTML = '<p style="color: #6c757d; font-style: italic;">Select a pillar above to see relevant behaviors.</p>';
     
     // Clear comment suggestions
     document.getElementById('commentSuggestions').innerHTML = '<div class="suggestions-placeholder">Select pillars and behaviors to see personalized suggestions.</div>';
     
-    // Keep the rest of your existing reset function unchanged
     // Clear location and comments
     document.getElementById('location').value = '';
     // Clear location button selection visually and reset 'Other'
@@ -1098,21 +1237,33 @@ function createImprovedBehaviorForm() {
     if(locOtherText) locOtherText.value = '';
 
     document.getElementById('comments').value = '';
+    
     // Reset behavior type toggle to good news
     document.querySelectorAll('.toggle-button[data-type]').forEach(b => b.classList.remove('active'));
     const goodNewsBtn = document.querySelector('.toggle-button[data-type="goodnews"]');
     if (goodNewsBtn) goodNewsBtn.classList.add('active');
     document.getElementById('behaviorType').value = 'goodnews';
     currentBehaviorType = 'goodnews';
+    
     // Reset CC checkboxes to default (checked)
     document.getElementById('ccPrincipal').checked = true;
     document.getElementById('ccAssociatePrincipal').checked = true;
+    
     // Clear student/parent fields
     clearStudentParentFields();
+    
+    // NEW: Ensure all sections are expanded
+    document.querySelectorAll('.form-section').forEach(section => {
+      if (section.classList.contains('collapsed')) {
+        toggleSection(section);
+      }
+    });
   }
 
   // --- Event Listeners and Initial Setup ---
   document.addEventListener('DOMContentLoaded', function() {
+       // Initialize collapsible sections
+       initCollapsibleSections();
 
        // Generate pillar buttons on load
        generatePillarButtons();
@@ -1194,6 +1345,8 @@ function createImprovedBehaviorForm() {
                       document.getElementById('parent2Last').value = result.parent2Last || '';
                       document.getElementById('parent2Email').value = result.parent2Email || '';
                       showStatus('Student information loaded!', 'success');
+                      collapseSections(['section-student-info', 'section-parent-info']);
+
                       // Add this line to update suggestions with the new student name
                       updateCommentSuggestions();
                   } else if (result && result.suggestions && Array.isArray(result.suggestions) && result.suggestions.length > 0) {
