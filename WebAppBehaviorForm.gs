@@ -1135,58 +1135,74 @@ function createImprovedBehaviorForm() {
       }
   }
 
-  /**
-   * Formats Good News suggestions following the same patterns as Stop & Think
-   * Now updated to handle 3+ behaviors with proper comma formatting and fix name repetition
-   */
   function generateGoodNewsCombinedSuggestion(suggestions, studentName) {
-      if (!suggestions || suggestions.length === 0) return null;
+      // Guard against invalid input
+      if (!suggestions || suggestions.length === 0 || !studentName) return null;
       
-      // Extract core behaviors from each suggestion
-      const behaviorParts = [];
+      // Simple approach: extract actions without student name and combine
+      var actions = [];
       
-      suggestions.forEach(function(s) {
-          // Get the suggestion text and clean it
-          let text = s.text.trim();
+      suggestions.forEach(function(suggestion) {
+          if (!suggestion.text) return;
+          
+          // Get the text without ending period
+          var text = suggestion.text.trim();
           if (text.endsWith('.')) {
               text = text.slice(0, -1);
           }
           
-          // Remove student name occurrences
-          let cleaned = text.replace(new RegExp('\\b' + studentName + '\\b', 'gi'), '');
+          // If text starts with the student name, remove it
+          if (text.toLowerCase().indexOf(studentName.toLowerCase()) === 0) {
+              text = text.substring(studentName.length).trim();
+          }
           
-          // Clean up any resulting awkward phrasings
-          cleaned = cleaned.replace(/\s+chose/, ' choosing');
-          cleaned = cleaned.replace(/\s+expressed/, ' expressing');
-          cleaned = cleaned.replace(/\s+took/, ' taking');
-          cleaned = cleaned.replace(/\s+acted/, ' acting');
-          cleaned = cleaned.replace(/\s+showed/, ' showing');
-          cleaned = cleaned.replace(/\s+helped/, ' helping');
+          // Remove any other instances of the student name
+          var nameRegex = new RegExp('\\b' + studentName.replace(/[.*+?^$()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+          text = text.replace(nameRegex, '').trim();
           
-          // Trim any leading spaces or words like "will" left from name removal
-          cleaned = cleaned.replace(/^\s*(will|and|,)\s+/i, '');
+          // Clean up leading words/punctuation often left after name removal
+          text = text.replace(/^(,|\.|and|or|&)\s+/i, '').trim();
           
-          // Add to our parts array if we have something meaningful
-          if (cleaned && cleaned.trim().length > 0) {
-              behaviorParts.push(cleaned.trim());
+          // If we have something meaningful left, add it to our actions
+          if (text) {
+              actions.push(text);
           }
       });
       
-      // If we don't have any valid parts after cleaning, return null
-      if (behaviorParts.length === 0) return null;
+      // If no valid actions were found, return null
+      if (actions.length === 0) return null;
       
-      // Now construct a properly formatted sentence with student name at beginning
-      if (behaviorParts.length === 1) {
-          return studentName + " " + behaviorParts[0] + ".";
+      // Ensure actions start with lowercase for combining properly
+      actions = actions.map(function(action) {
+          // Make sure action starts with lowercase unless it's a proper noun
+          if (/^[A-Z][a-z]/.test(action) && 
+              !['I', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].includes(action.split(' ')[0])) {
+              return action.charAt(0).toLowerCase() + action.slice(1);
+          }
+          return action;
+      });
+      
+      // Build a clean combined sentence with only one student name at the beginning
+      var result;
+      if (actions.length === 1) {
+          // Capitalize the first letter of the only action
+          var capitalizedAction = actions[0].charAt(0).toUpperCase() + actions[0].slice(1);
+          result = studentName + " " + capitalizedAction + ".";
       } 
-      else if (behaviorParts.length === 2) {
-          return studentName + " " + behaviorParts[0] + " and " + behaviorParts[1] + ".";
+      else if (actions.length === 2) {
+          // Capitalize the first letter of the first action
+          var capitalizedFirstAction = actions[0].charAt(0).toUpperCase() + actions[0].slice(1);
+          result = studentName + " " + capitalizedFirstAction + " and " + actions[1] + ".";
       }
       else {
-          // For 3+ items, use proper comma formatting
-          const lastItem = behaviorParts.pop();
-          return studentName + " " + behaviorParts.join(', ') + ", and " + lastItem + ".";
+          // For 3+ actions, capitalize the first and use proper Oxford comma formatting
+          var capitalizedFirstAction = actions[0].charAt(0).toUpperCase() + actions[0].slice(1);
+          var lastAction = actions.pop();
+          actions[0] = capitalizedFirstAction;
+          result = studentName + " " + actions.join(', ') + ", and " + lastAction + ".";
       }
+      
+      return result;
   }
 
   /**
