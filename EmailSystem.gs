@@ -3,15 +3,15 @@
  */
 const CONFIG = {
   SCHOOL_NAME: "Orono Middle School", // Or your actual school name
-  EMAIL_SUBJECT_GOOD_NEWS: "Good News about your child - Demonstrating Character!", // Updated Subject
-  EMAIL_SUBJECT_STOP_THINK: "Behavior Update - Opportunity for Growth", // Updated Subject
+  EMAIL_SUBJECT_GOOD_NEWS: "Good News Moment - Demonstrating Character!", // Updated Subject
+  EMAIL_SUBJECT_STOP_THINK: "Stop & Think Moment - Opportunity for Growth", // Updated Subject
   SHEET_NAMES: {
     DIRECTORY: "Directory",        // Verify this sheet name
     BEHAVIOR_FORM: "Behavior Form" // Verify this sheet name
   },
   ADMIN_EMAILS: {
-    PRINCIPAL: "paul.ivers@orono.k12.mn.us", // Replace with actual principal email
-    ASSOCIATE_PRINCIPAL: "paul.ivers@orono.k12.mn.us" // Replace with actual associate principal email
+    PRINCIPAL: "kim.vaneyll@orono.k12.mn.us", // Replace with actual principal email
+    ASSOCIATE_PRINCIPAL: "sara.hunstiger@orono.k12.mn.us" // Replace with actual associate principal email
   },
   SEND_EMAILS: true, // Or false for testing
   SIMILARITY_THRESHOLD: 3,  // Max Levenshtein distance for suggestions
@@ -29,40 +29,40 @@ const PILLARS_DATA = [
     iconSymbol: "✋",
     description: "Building honesty, reliability, and integrity.", // Added brief description
     positiveBehaviors: [
-      "Telling the truth, even when difficult",
-      "Completing work with academic honesty", // Slightly refined
-      "Returning found items to rightful owners",
-      "Following through on commitments and promises",
-      "Avoiding the spread of rumors or gossip",
-      "Being reliable and dependable in group settings",
-      "Using digital resources ethically (e.g., citing sources, submitting ones' own original work)" // Added digital aspect
+      "telling the truth, even when difficult",
+      "completing work with academic honesty", // Slightly refined
+      "returning found items to rightful owners",
+      "following through on commitments and promises",
+      "avoiding the spread of rumors or gossip",
+      "being reliable and dependable in group settings",
+      "using digital resources ethically (e.g., citing sources, submitting ones' own original work)" // Added digital aspect
     ],
     positiveRecognitionExamples: [
-      "Showed great integrity by being honest today.",
-      "Demonstrated academic honesty on their work.",
-      "Acted responsibly by returning a found item.",
-      "Followed through reliably on a commitment.",
-      "Chose not to participate in gossip.",
-      "Was a trustworthy and dependable group member.",
-      "Showed digital responsibility in their work."
+      "showed great integrity by being honest today.",
+      "demonstrated academic honesty on their work.",
+      "acted responsibly by returning a found item.",
+      "followed through reliably on a commitment.",
+      "chose not to participate in gossip.",
+      "was a trustworthy and dependable group member.",
+      "showed digital responsibility in their work."
     ],
     negativeBehaviors: [
-      "Being dishonest or misleading others",
-      "Copying work, cheating, or plagiarizing", // Refined
-      "Taking items that belong to others",
-      "Breaking promises or commitments",
-      "Participating in gossip or spreading rumors",
-      "Blaming others unfairly to avoid consequences",
-      "Misrepresenting online sources or plagiarizing digital work" // Added digital aspect
+      "being dishonest or misleading others",
+      "copying work, cheating, or plagiarizing", // Refined
+      "taking items that belong to others",
+      "breaking promises or commitments",
+      "participating in gossip or spreading rumors",
+      "blaming others unfairly to avoid consequences",
+      "misrepresenting online sources or plagiarizing digital work" // Added digital aspect
     ],
     learningFocus: [
-      "Developing honesty, even when it's challenging.",
-      "Understanding and practicing academic integrity.",
-      "Respecting others' property and belongings.",
-      "Learning the importance of keeping one's word.",
-      "Building skills to avoid participating in or spreading gossip.",
-      "Developing reliability and accountability.",
-      "Learning responsible digital research and citation skills."
+      "developing honesty, even when it's challenging.",
+      "understanding and practicing academic integrity.",
+      "respecting others' property and belongings.",
+      "learning the importance of keeping one's word.",
+      "building skills to avoid participating in or spreading gossip.",
+      "developing reliability and accountability.",
+      "learning responsible digital research and citation skills."
     ]
   },
   {
@@ -71,40 +71,40 @@ const PILLARS_DATA = [
     iconSymbol: "🤝",
     description: "Treating others, property, and oneself with consideration.",
     positiveBehaviors: [
-      "Using polite and appropriate language with peers and adults", // Refined
-      "Listening actively and waiting for one's turn to speak", // Refined
-      "Handling personal and school property carefully", // Refined
-      "Following rules and directions willingly",
-      "Expressing disagreements calmly and respectfully",
-      "Showing appreciation for diverse perspectives and backgrounds", // Refined
-      "Engaging in respectful online communication" // Added digital aspect
+      "using polite and appropriate language with peers and adults", // Refined
+      "listening actively and waiting for one's turn to speak", // Refined
+      "handling personal and school property carefully", // Refined
+      "following rules and directions willingly",
+      "expressing disagreements calmly and respectfully",
+      "showing appreciation for diverse perspectives and backgrounds", // Refined
+      "engaging in respectful online communication" // Added digital aspect
     ],
     positiveRecognitionExamples: [
-      "Communicated respectfully with others today.",
-      "Listened attentively during discussions.",
-      "Handled materials responsibly.",
-      "Followed directions cooperatively.",
-      "Expressed opinions respectfully.",
-      "Showed appreciation for different viewpoints.",
-      "Demonstrated respectful online behavior."
+      "communicated respectfully with others today.",
+      "listened attentively during discussions.",
+      "handled materials responsibly.",
+      "followed directions cooperatively.",
+      "expressed opinions respectfully.",
+      "showed appreciation for different viewpoints.",
+      "demonstrated respectful online behavior."
     ],
     negativeBehaviors: [
-      "Interrupting or talking over others frequently",
-      "Using disrespectful, rude, or offensive language", // Refined
-      "Showing disrespect through tone, gestures, or expressions",
-      "Damaging or misusing property (personal or school)",
-      "Ignoring or defying reasonable instructions",
-      "Mocking, teasing, or putting others down",
-      "Engaging in disrespectful or inappropriate online interactions" // Added digital aspect
+      "interrupting or talking over others frequently",
+      "communicating with disrespectful, rude, or offensive language", // Refined
+      "showing disrespect through tone, gestures, or expressions",
+      "wrestling with other students or not keeping hands to self",
+      "ignoring or defying reasonable instructions",
+      "mocking, teasing, or putting others down",
+      "engaging in disrespectful or inappropriate online interactions" // Added digital aspect
     ],
     learningFocus: [
-      "Practicing active listening and patience in conversations.",
-      "Developing constructive communication and appropriate language.",
-      "Learning to show respect through actions and body language.",
-      "Understanding the importance of caring for property.",
-      "Learning to follow directions and school expectations.",
-      "Building empathy and respectful ways to interact.",
-      "Developing positive digital communication habits."
+      "practicing active listening and patience in conversations.",
+      "developing constructive communication and appropriate language.",
+      "learning to show respect through actions and body language.",
+      "understanding the importance of caring for property.",
+      "learning to follow directions and school expectations.",
+      "building empathy and respectful ways to interact.",
+      "developing positive digital communication habits."
     ]
   },
   {
@@ -113,44 +113,44 @@ const PILLARS_DATA = [
     iconSymbol: "⭐",
     description: "Taking ownership of actions, duties, and learning.",
     positiveBehaviors: [
-      "Submitting assignments on time and completed thoughtfully", // Refined
-      "Coming prepared for class with necessary materials",
-      "Cleaning up one's own workspace and shared areas", // Refined
-      "Acknowledging mistakes and learning from them",
-      "Taking good care of borrowed or shared items",
-      "Completing assigned tasks and chores reliably",
-      "Persisting through challenges and seeking help appropriately", // Refined
-      "Managing time effectively for assignments and projects" // Added
+      "submitting assignments on time and completed thoughtfully", // Refined
+      "coming prepared for class with necessary materials",
+      "cleaning up one's own workspace and shared areas", // Refined
+      "acknowledging mistakes and learning from them",
+      "taking good care of borrowed or shared items",
+      "completing assigned tasks and chores reliably",
+      "persisting through challenges and seeking help appropriately", // Refined
+      "managing time effectively for assignments and projects" // Added
     ],
     positiveRecognitionExamples: [
-      "Submitted thoughtful work on time.",
-      "Came to class well-prepared today.",
-      "Helped keep our space tidy.",
-      "Took responsibility for a mistake and learned from it.",
-      "Cared for shared materials responsibly.",
-      "Completed assigned tasks reliably.",
-      "Showed perseverance on a challenging task.",
-      "Managed time effectively on the recent assignment."
+      "submitted thoughtful work on time.",
+      "came to class well-prepared today.",
+      "helped keep our space tidy.",
+      "took responsibility for a mistake and learned from it.",
+      "cared for shared materials responsibly.",
+      "completed assigned tasks reliably.",
+      "showed perseverance on a challenging task.",
+      "managed time effectively on the recent assignment."
     ],
     negativeBehaviors: [
-      "Frequently submitting late or incomplete work",
-      "Often forgetting necessary assignments or materials",
-      "Leaving personal or shared areas messy or disorganized",
-      "Making excuses or blaming others for mistakes",
-      "Losing or damaging items carelessly",
-      "Being unprepared for class activities or discussions",
-      "Giving up easily when tasks become challenging",
-      "Struggling to manage deadlines for assignments/projects" // Added
+      "frequently submitting late or incomplete work",
+      "being off-task or distracting to others",
+      "leaving personal or shared areas messy or disorganized",
+      "making excuses or blaming others for mistakes",
+      "losing or damaging items carelessly",
+      "being unprepared for class activities or discussions",
+      "giving up easily when tasks become challenging",
+      "struggling to manage deadlines for assignments/projects" // Added
     ],
     learningFocus: [
-      "Developing organizational skills for assignments.",
-      "Building habits for preparedness and organization.",
-      "Learning to take responsibility for personal and shared spaces.",
-      "Developing accountability and a growth mindset.",
-      "Practicing care for personal and shared belongings.",
-      "Strengthening preparedness for learning.",
-      "Building resilience and problem-solving skills.",
-      "Improving time management and planning skills."
+      "developing organizational skills for assignments.",
+      "building habits for preparedness and organization.",
+      "learning to take responsibility for personal and shared spaces.",
+      "developing accountability and a growth mindset.",
+      "practicing care for personal and shared belongings.",
+      "strengthening preparedness for learning.",
+      "building resilience and problem-solving skills.",
+      "improving time management and planning skills."
     ]
   },
   {
@@ -159,36 +159,36 @@ const PILLARS_DATA = [
     iconSymbol: "⚖️",
     description: "Playing by the rules, taking turns, and being open-minded.",
     positiveBehaviors: [
-      "Taking turns and sharing opportunities equitably", // Refined
-      "Playing games and participating according to rules",
-      "Listening openly to different viewpoints before judging", // Refined
-      "Actively including others in activities and groups",
-      "Sharing resources appropriately and considering others' needs",
-      "Treating everyone impartially and justly" // Refined
+      "taking turns and sharing opportunities equitably", // Refined
+      "playing games and participating according to rules",
+      "listening openly to different viewpoints before judging", // Refined
+      "actively including others in activities and groups",
+      "sharing resources appropriately and considering others' needs",
+      "treating everyone impartially and justly" // Refined
     ],
     positiveRecognitionExamples: [
-      "Shared materials/opportunities fairly with others.",
-      "Played fairly and followed the rules.",
-      "Listened open-mindedly to different ideas.",
-      "Made an effort to include others today.",
-      "Shared resources thoughtfully.",
-      "Treated peers in a fair and just manner."
+      "shared materials/opportunities fairly with others.",
+      "played fairly and followed the rules.",
+      "listened open-mindedly to different ideas.",
+      "made an effort to include others today.",
+      "shared resources thoughtfully.",
+      "treated peers in a fair and just manner."
     ],
     negativeBehaviors: [
-      "Cutting ahead, skipping turns, or dominating activities",
-      "Cheating or disregarding rules in games/activities",
-      "Ignoring different perspectives or being closed-minded",
-      "Deliberately excluding peers from activities or groups",
-      "Using more resources than necessary or permitted",
-      "Blaming others unjustly or showing favoritism" // Refined
+      "cutting ahead, skipping turns, or dominating activities",
+      "cheating or disregarding rules in games/activities",
+      "ignoring different perspectives or being closed-minded",
+      "deliberately excluding peers from activities or groups",
+      "using more resources than necessary or permitted",
+      "blaming others unjustly or showing favoritism" // Refined
     ],
     learningFocus: [
-      "Practicing sharing and taking turns.",
-      "Understanding the importance of rules and fair play.",
-      "Developing open-mindedness and considering diverse views.",
-      "Building inclusive behaviors and empathy.",
-      "Learning to share resources equitably.",
-      "Developing impartiality and avoiding bias."
+      "practicing sharing and taking turns.",
+      "understanding the importance of rules and fair play.",
+      "developing open-mindedness and considering diverse views.",
+      "building inclusive behaviors and empathy.",
+      "learning to share resources equitably.",
+      "developing impartiality and avoiding bias."
     ]
   },
   {
@@ -197,40 +197,40 @@ const PILLARS_DATA = [
     iconSymbol: "❤️",
     description: "Showing kindness, compassion, and empathy towards others.",
     positiveBehaviors: [
-      "Offering help or support to peers in need",
-      "Comforting or showing empathy towards others experiencing difficulty",
-      "Using kind words and giving genuine compliments",
-      "Welcoming new students or including peers who seem left out", // Refined
-      "Expressing gratitude and appreciation towards others",
-      "Sharing items willingly and thoughtfully",
-      "Standing up for peers respectfully when witnessing unkindness" // Refined
+      "offering help or support to peers in need",
+      "comforting or showing empathy towards others experiencing difficulty",
+      "communicating with kind words and giving genuine compliments",
+      "welcoming new students or including peers who seem left out", // Refined
+      "expressing gratitude and appreciation towards others",
+      "sharing items willingly and thoughtfully",
+      "standing up for peers respectfully when witnessing unkindness" // Refined
     ],
     positiveRecognitionExamples: [
-      "Showed kindness by helping a peer.",
-      "Was compassionate and supportive to someone today.",
-      "Used kind words that made a positive impact.",
-      "Made an effort to welcome or include someone.",
-      "Expressed gratitude thoughtfully.",
-      "Shared generously with others.",
-      "Acted as a supportive friend/classmate."
+      "showed kindness by helping a peer.",
+      "was compassionate and supportive to someone today.",
+      "communicated with kind words that made a positive impact.",
+      "made an effort to welcome or include someone.",
+      "expressed gratitude thoughtfully.",
+      "shared generously with others.",
+      "acted as a supportive friend/classmate."
     ],
     negativeBehaviors: [
-      "Being unkind, teasing, or making fun of others",
-      "Ignoring peers who clearly need assistance or support",
-      "Engaging in mean-spirited gossip or spreading rumors",
-      "Laughing at the mistakes or struggles of others",
-      "Acting selfishly or disregarding the feelings/needs of others",
-      "Excluding others purposefully from groups or activities",
-      "Being insensitive to the feelings of others" // Added
+      "being unkind, teasing, or making fun of others",
+      "ignoring peers who clearly need assistance or support",
+      "engaging in mean-spirited gossip or spreading rumors",
+      "laughing at the mistakes or struggles of others",
+      "acting selfishly or disregarding the feelings/needs of others",
+      "excluding others purposefully from groups or activities",
+      "being insensitive to the feelings of others" // Added
     ],
     learningFocus: [
-      "Cultivating empathy and kindness in interactions.",
-      "Developing awareness of others' needs and offering support.",
-      "Practicing positive communication and avoiding gossip.",
-      "Building sensitivity to how words/actions affect others.",
-      "Learning to consider others' perspectives and needs.",
-      "Developing inclusive social skills.",
-      "Increasing awareness and sensitivity to others' feelings."
+      "cultivating empathy and kindness in interactions.",
+      "developing awareness of others' needs and offering support.",
+      "practicing positive communication and avoiding gossip.",
+      "building sensitivity to how words/actions affect others.",
+      "learning to consider others' perspectives and needs.",
+      "developing inclusive social skills.",
+      "increasing awareness and sensitivity to others' feelings."
     ]
   },
   {
@@ -239,44 +239,44 @@ const PILLARS_DATA = [
     iconSymbol: "🏠",
     description: "Contributing positively to the school and community.",
     positiveBehaviors: [
-      "Following school and classroom rules consistently",
-      "Working cooperatively and respectfully with peers in groups",
-      "Helping keep school spaces clean, orderly, and safe", // Refined
-      "Showing respect for school staff, volunteers, and visitors", // Refined
-      "Participating positively in school events and activities",
-      "Contributing to a safe and welcoming school environment",
-      "Reporting safety concerns or rule violations responsibly",
-      "Using school technology appropriately and ethically" // Added digital citizenship
+      "following school and classroom rules consistently",
+      "working cooperatively and respectfully with peers in groups",
+      "helping keep school spaces clean, orderly, and safe", // Refined
+      "showing respect for school staff, volunteers, and visitors", // Refined
+      "participating positively in school events and activities",
+      "contributing to a safe and welcoming school environment",
+      "reporting safety concerns or rule violations responsibly",
+      "demonstrating appropriate and ethical use of school technology" // Added digital citizenship
     ],
     positiveRecognitionExamples: [
-      "Followed classroom/school rules reliably.",
-      "Collaborated effectively and respectfully in a group.",
-      "Helped maintain a positive school environment.",
-      "Showed respect for adults in the school community.",
-      "Participated positively in a school activity.",
-      "Contributed to a welcoming atmosphere.",
-      "Acted responsibly regarding a safety/rule concern.",
-      "Used school technology responsibly today."
+      "followed classroom/school rules reliably.",
+      "collaborated effectively and respectfully in a group.",
+      "helped maintain a positive school environment.",
+      "showed respect for adults in the school community.",
+      "participated positively in a school activity.",
+      "contributed to a welcoming atmosphere.",
+      "acted responsibly regarding a safety/rule concern.",
+      "demonstrated appropriate and ethical use of school technology."
     ],
     negativeBehaviors: [
-      "Breaking or consistently ignoring established rules",
-      "Littering or failing to clean up after oneself",
-      "Damaging school property intentionally or carelessly",
-      "Refusing to cooperate or being disruptive in groups",
-      "Disrupting the learning environment for others",
-      "Ignoring or violating safety procedures",
-      "Avoiding participation or contributing negatively to activities",
-      "Misusing school technology or accessing inappropriate content" // Added digital citizenship
+      "breaking or consistently ignoring established rules",
+      "littering or failing to clean up after oneself",
+      "damaging school property intentionally or carelessly",
+      "refusing to cooperate or being disruptive in groups",
+      "disrupting the learning environment for others",
+      "ignoring or violating safety procedures",
+      "avoiding participation or contributing negatively to activities",
+      "misusing school technology or accessing inappropriate content" // Added digital citizenship
     ],
     learningFocus: [
-      "Understanding and respecting community rules.",
-      "Developing responsibility for shared spaces.",
-      "Learning to respect property and resources.",
-      "Building collaboration and teamwork skills.",
-      "Understanding one's impact on the learning environment.",
-      "Developing awareness of safety procedures.",
-      "Learning the value of positive participation.",
-      "Practicing responsible and ethical technology use."
+      "understanding and respecting community rules.",
+      "developing responsibility for shared spaces.",
+      "learning to respect property and resources.",
+      "building collaboration and teamwork skills.",
+      "understanding one's impact on the learning environment.",
+      "developing awareness of safety procedures.",
+      "learning the value of positive participation.",
+      "practicing responsible and ethical technology use."
     ]
   }
 ];
