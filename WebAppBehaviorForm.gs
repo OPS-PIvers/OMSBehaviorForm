@@ -398,7 +398,7 @@ function createImprovedBehaviorForm() {
 
       <!-- Step 1: Behavior Type -->
       <div class="form-section" id="section-behavior-type">
-        <h2>Step 1: Select Behavior Context</h2>
+        <h2>Select Behavior Context</h2>
         <div class="section-content">
           <div class="toggle-button-group">
             <div class="toggle-button active" data-type="goodnews">✅ Good News / Positive Behavior</div>
@@ -411,7 +411,7 @@ function createImprovedBehaviorForm() {
 
       <!-- Step 2: Student Info -->
       <div class="form-section" id="section-student-info">
-        <h2>Step 2: Student Information</h2>
+        <h2>Student Information</h2>
         <div class="section-content">
           <div class="form-row">
             <div class="form-group">
@@ -439,7 +439,7 @@ function createImprovedBehaviorForm() {
 
       <!-- Step 3: Parent Info -->
       <div class="form-section" id="section-parent-info">
-        <h2>Step 3: Parent Information (auto-filled)</h2>
+        <h2>Parent Information (auto-filled)</h2>
         <div class="section-content">
           <div class="form-row">
             <div class="form-group"><label for="parent1First">Parent 1 First</label><input type="text" id="parent1First" name="parent1First" readonly></div>
@@ -480,7 +480,7 @@ function createImprovedBehaviorForm() {
 
       <!-- Step 4: Select Pillars -->
       <div class="form-section" id="section-pillars">
-        <h2>Step 4: Select Character Pillar(s)*</h2>
+        <h2>Select Character Pillar(s)*</h2>
         <div class="section-content">
           <div id="pillarButtonsContainer" class="pillar-button-container">
               <!-- Pillar buttons will be generated here by JavaScript -->
@@ -491,7 +491,7 @@ function createImprovedBehaviorForm() {
 
       <!-- Step 5: Select Behaviors -->
       <div class="form-section" id="section-behaviors">
-        <h2>Step 5: Select Specific Behavior(s)*</h2>
+        <h2>Select Specific Observed Behavior(s)*</h2>
         <div class="section-content">
           <div id="behaviorButtonsContainer">
             <p style="color: #6c757d;"><i>Select a pillar above to see relevant behaviors.</i></p>
@@ -502,7 +502,7 @@ function createImprovedBehaviorForm() {
 
       <!-- Step 6: Location & Comments -->
       <div class="form-section" id="section-location-comments">
-        <h2>Step 6: Location & Comments</h2>
+        <h2>Location & Comments</h2>
         <div class="section-content">
           <div class="form-group form-group-full">
             <label>Location*</label>
@@ -537,7 +537,7 @@ function createImprovedBehaviorForm() {
 
       <!-- Step 7: Admin CC -->
       <div class="form-section" id="section-admin-cc">
-        <h2>Step 7: Notify Administrators (Optional)</h2>
+        <h2>Notify Administrators (Optional)</h2>
         <div class="section-content">
           <div class="form-group admin-cc-options">
             <label>CC Administrators on Parent Email:</label>
@@ -587,69 +587,69 @@ function createImprovedBehaviorForm() {
       {
         name: "Helping others",
         pillar: "Caring",
-        behavior: "Offering help or support to peers in need"
+        behavior: "offering help or support to peers in need"
       },
       {
         name: "Showing kindness",
         pillar: "Caring",
-        behavior: "Using kind words and giving genuine compliments"
+        behavior: "communicating with kind words and giving genuine compliments"
       },
       {
         name: "Following directions",
         pillar: "Respect",
-        behavior: "Following rules and directions willingly"
+        behavior: "following rules and directions willingly"
       },
       {
         name: "Participating in class",
         pillar: "Citizenship",
-        behavior: "Participating positively in school events and activities"
+        behavior: "participating positively in school events and activities"
       },
       {
         name: "Demonstrating effort in school work",
         pillar: "Responsibility",
-        behavior: "Persisting through challenges and seeking help appropriately"
+        behavior: "persisting through challenges and seeking help appropriately"
       }
     ],
     stopthink: [
       {
         name: "Blurting",
         pillar: "Respect",
-        behavior: "Interrupting or talking over others frequently"
+        behavior: "interrupting or talking over others frequently"
       },
       {
         name: "Calling out classmates",
         pillar: "Respect",
-        behavior: "Using disrespectful, rude, or offensive language"
+        behavior: "communicating with disrespectful, rude, or offensive language"
       },
       {
         name: "Needing frequent reminders",
         pillar: "Responsibility",
-        behavior: "Often forgetting necessary assignments or materials"
+        behavior: "being off-task or distracting to others"
       },
       {
         name: "Engaging in physical horseplay",
         pillar: "Respect", 
-        behavior: "Showing disrespect through tone, gestures, or expressions"
+        behavior: "wrestling with other students or not keeping hands to self"
       },
       {
         name: "Running",
         pillar: "Citizenship",
-        behavior: "Breaking or consistently ignoring established rules"
+        behavior: "breaking or consistently ignoring established rules"
       },
       {
         name: "Eating in class",
         pillar: "Citizenship",
-        behavior: "Breaking or consistently ignoring established rules"
+        behavior: "breaking or consistently ignoring established rules"
       },
       {
         name: "Arguing",
         pillar: "Respect",
-        behavior: "Showing disrespect through tone, gestures, or expressions"
+        behavior: "showing disrespect through tone, gestures, or expressions"
       },
       {
         name: "Being loud or screaming",
         pillar: "Citizenship",
-        behavior: "Disrupting the learning environment for others"
+        behavior: "disrupting the learning environment for others"
       }
     ]
   };
