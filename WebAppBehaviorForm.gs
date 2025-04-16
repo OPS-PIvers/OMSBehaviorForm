@@ -46,7 +46,7 @@ function doGet(e) {
     .setTitle('Student Behavior Form - Pillars of Character')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     // Allow embedding if necessary, otherwise remove setXFrameOptionsMode
-    // .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
   return htmlOutput;
 }
