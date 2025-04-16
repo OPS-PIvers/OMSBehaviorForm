@@ -10,7 +10,7 @@ const CONFIG = {
     BEHAVIOR_FORM: "Behavior Form" // Verify this sheet name
   },
   ADMIN_EMAILS: {
-    PRINCIPAL: "kim.vaneyll@orono.k12.mn.us", // Replace with actual principal email
+    PRINCIPAL: "kim.vaneyll", // Replace with actual principal email
     ASSOCIATE_PRINCIPAL: "sara.hunstiger@orono.k12.mn.us" // Replace with actual associate principal email
   },
   SEND_EMAILS: true, // Or false for testing
