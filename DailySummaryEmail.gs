@@ -85,7 +85,7 @@ function sendEmptyDailySummary() {
 }
 
 /**
- * Gets all submissions from today
+ * Gets all submissions from today, using precise column mapping
  * @return {Array} Array of submission objects
  */
 function getTodaysSubmissions() {
@@ -104,45 +104,67 @@ function getTodaysSubmissions() {
     return [];
   }
   
-  // Get column indices
+  // Get header row to map column names to indices
   const headers = data[0];
-  const timestampCol = headers.indexOf("Timestamp");
   
-  if (timestampCol === -1) {
-    Logger.log("Timestamp column not found in sheet");
-    return [];
-  }
+  // Map column indices
+  const timestampIndex = 0;  // Column A
+  const emailIndex = 1;      // Column B
+  const studentFirstIndex = 2;  // Column C
+  const studentLastIndex = 3;   // Column D
+  const behaviorTypeIndex = 4;  // Column E
+  const locationIndex = 5;    // Column F
+  const pillarsIndex = 6;     // Column G
+  const behaviorsIndex = 7;   // Column H
+  const commentsIndex = 8;    // Column I
   
-  // Get today's date at midnight for comparison
+  // Get today's date as string for comparison (MM/dd/yyyy format)
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const todayString = Utilities.formatDate(today, Session.getScriptTimeZone(), "MM/dd/yyyy");
+  
+  Logger.log("Today's date for comparison: " + todayString);
   
   // Filter for today's submissions
   const todaysSubmissions = [];
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    const timestamp = row[timestampCol];
+    const timestamp = row[timestampIndex];
     
     // Skip if no timestamp or invalid date
     if (!timestamp || !(timestamp instanceof Date) || isNaN(timestamp.getTime())) {
       continue;
     }
     
-    // Check if submission is from today
-    const submissionDate = new Date(timestamp);
-    submissionDate.setHours(0, 0, 0, 0);
+    // Format the submission date to match our comparison format
+    const submissionDateString = Utilities.formatDate(timestamp, Session.getScriptTimeZone(), "MM/dd/yyyy");
     
-    if (submissionDate.getTime() === today.getTime()) {
-      // Create submission object with all column data
-      const submission = {};
-      headers.forEach((header, index) => {
-        submission[header] = row[index];
-      });
+    // Log for debugging the first few rows
+    if (i < 5) {
+      Logger.log(`Row ${i+1}: Comparing submission date ${submissionDateString} with today ${todayString}`);
+    }
+    
+    // Check if submission date matches today's date
+    if (submissionDateString === todayString) {
+      Logger.log(`Found match at row ${i+1}: ${submissionDateString}`);
+      
+      // Get the column values using their indices
+      const submission = {
+        'Timestamp': timestamp,
+        'Email Address': row[emailIndex],
+        'Student First': row[studentFirstIndex],
+        'Student Last': row[studentLastIndex],
+        'Which type of behavior are you documenting?': row[behaviorTypeIndex],
+        'location': row[locationIndex],
+        'Pillars': row[pillarsIndex],
+        'Behaviors': row[behaviorsIndex],
+        'Teacher Comments': row[commentsIndex]
+      };
       
       todaysSubmissions.push(submission);
     }
   }
   
+  Logger.log(`Found ${todaysSubmissions.length} submissions for today`);
   return todaysSubmissions;
 }
 
@@ -266,59 +288,25 @@ function createSummaryEmailHTML(submissions, stats) {
   const stopThinkSubmissions = [];
   
   submissions.forEach(submission => {
+    // Get the behavior type from column E
     const behaviorType = submission["Which type of behavior are you documenting?"] || "";
     
-    if (typeof behaviorType === 'string') {
-      if (behaviorType.includes("Good News")) {
-        goodNewsSubmissions.push(submission);
-      } else if (behaviorType.includes("Stop & Think")) {
-        stopThinkSubmissions.push(submission);
-      }
+    // Log the behavior type being checked
+    Logger.log(`Checking behavior type: "${behaviorType}"`);
+    
+    // Check if it contains the expected values (exact match)
+    if (behaviorType === "Good News") {
+      goodNewsSubmissions.push(submission);
+      Logger.log("Added to Good News submissions");
+    } else if (behaviorType === "Stop & Think") {
+      stopThinkSubmissions.push(submission);
+      Logger.log("Added to Stop & Think submissions");
+    } else {
+      Logger.log(`Unknown behavior type: "${behaviorType}"`);
     }
   });
   
-  // Create HTML for statistics
-  const statsHTML = `
-    <div class="stats-container">
-      <h2>Today's Summary (${formattedDate})</h2>
-      <div class="stats-grid">
-        <div class="stat-box good-news">
-          <div class="stat-title">Good News</div>
-          <div class="stat-value">${stats.daily.goodNews}</div>
-          <div class="stat-percent">${stats.daily.goodNewsPercent}% of today</div>
-        </div>
-        <div class="stat-box stop-think">
-          <div class="stat-title">Stop &amp; Think</div>
-          <div class="stat-value">${stats.daily.stopThink}</div>
-          <div class="stat-percent">${stats.daily.stopThinkPercent}% of today</div>
-        </div>
-        <div class="stat-box total">
-          <div class="stat-title">Total</div>
-          <div class="stat-value">${stats.daily.total}</div>
-          <div class="stat-percent">100%</div>
-        </div>
-      </div>
-      
-      <h2>All-Time Statistics</h2>
-      <div class="stats-grid">
-        <div class="stat-box good-news">
-          <div class="stat-title">Good News</div>
-          <div class="stat-value">${stats.total.goodNews}</div>
-          <div class="stat-percent">${stats.total.goodNewsPercent}% of total</div>
-        </div>
-        <div class="stat-box stop-think">
-          <div class="stat-title">Stop &amp; Think</div>
-          <div class="stat-value">${stats.total.stopThink}</div>
-          <div class="stat-percent">${stats.total.stopThinkPercent}% of total</div>
-        </div>
-        <div class="stat-box total">
-          <div class="stat-title">Total</div>
-          <div class="stat-value">${stats.total.total}</div>
-          <div class="stat-percent">100%</div>
-        </div>
-      </div>
-    </div>
-  `;
+  Logger.log(`Categorized submissions: ${goodNewsSubmissions.length} Good News, ${stopThinkSubmissions.length} Stop & Think`);
   
   // Create HTML for Good News table
   let goodNewsTableHTML = "";
@@ -382,7 +370,49 @@ function createSummaryEmailHTML(submissions, stats) {
     `;
   }
   
+  // Create HTML for statistics
+  const statsHTML = `
+    <h2>Today's Summary (${formattedDate})</h2>
+    <div class="stats-grid">
+      <div class="stat-box good-news">
+        <div class="stat-title">Good News</div>
+        <div class="stat-value">${stats.daily.goodNews}</div>
+        <div class="stat-percent">${stats.daily.goodNewsPercent}% of today</div>
+      </div>
+      <div class="stat-box stop-think">
+        <div class="stat-title">Stop &amp; Think</div>
+        <div class="stat-value">${stats.daily.stopThink}</div>
+        <div class="stat-percent">${stats.daily.stopThinkPercent}% of today</div>
+      </div>
+      <div class="stat-box total">
+        <div class="stat-title">Total</div>
+        <div class="stat-value">${stats.daily.total}</div>
+        <div class="stat-percent">100%</div>
+      </div>
+    </div>
+    
+    <h2>All-Time Statistics</h2>
+    <div class="stats-grid">
+      <div class="stat-box good-news">
+        <div class="stat-title">Good News</div>
+        <div class="stat-value">${stats.total.goodNews}</div>
+        <div class="stat-percent">${stats.total.goodNewsPercent}% of total</div>
+      </div>
+      <div class="stat-box stop-think">
+        <div class="stat-title">Stop &amp; Think</div>
+        <div class="stat-value">${stats.total.stopThink}</div>
+        <div class="stat-percent">${stats.total.stopThinkPercent}% of total</div>
+      </div>
+      <div class="stat-box total">
+        <div class="stat-title">Total</div>
+        <div class="stat-value">${stats.total.total}</div>
+        <div class="stat-percent">100%</div>
+      </div>
+    </div>
+  `;
+  
   // Combine all parts into the final HTML email
+  // REORDERED sections: 1) Good News, 2) Stop & Think, 3) Statistics
   const emailHTML = `
     <!DOCTYPE html>
     <html>
@@ -537,11 +567,16 @@ function createSummaryEmailHTML(submissions, stats) {
       <div class="container">
         <h1>Daily Behavior Report - ${formattedDate}</h1>
         
-        ${statsHTML}
-        
+        <!-- REORDERED: 1) Good News first -->
         ${goodNewsTableHTML}
         
+        <!-- REORDERED: 2) Stop & Think second -->
         ${stopThinkTableHTML}
+        
+        <!-- REORDERED: 3) Statistics third -->
+        <div class="stats-container">
+          ${statsHTML}
+        </div>
         
         <div class="footer">
           <p>This report was automatically generated by the ${CONFIG.SCHOOL_NAME} Behavior System.</p>
@@ -575,21 +610,31 @@ function createTableRows(submissions, rowClass) {
       Utilities.formatDate(timestamp, Session.getScriptTimeZone(), "h:mm a") : 
       "Unknown";
     
-    // Get other fields with fallbacks for missing data
-    const teacherName = submission['Your Name'] || submission['Email Address'] || "Unknown";
-    const studentName = (submission['Student First'] || '') + ' ' + (submission['Student Last'] || '');
-    const location = submission['Location (Good News)'] || submission['Location (Stop and Think)'] || submission['location'] || "Not specified";
-    const pillars = submission['selectedPillars'] || "Not specified";
-    const behaviors = submission['Good News Behaviors'] || submission['Stop and Think Behaviors'] || submission['selectedBehaviors'] || "Not specified";
-    const comments = submission['Additional comments about the selected "Good News" behavior:'] || 
-                    submission['Additional comments about the selected "Stop and Think" behavior:'] || 
-                    submission['comments'] || "";
+    // Get teacher information (column B)
+    const teacherEmail = submission['Email Address'] || "";
     
-    // Create a table row
+    // Get student information (columns C and D)
+    const studentFirst = submission['Student First'] || '';
+    const studentLast = submission['Student Last'] || '';
+    const studentName = studentFirst + ' ' + studentLast;
+    
+    // Get location information (column F)
+    const location = submission['Location (Stop and Think)'] || submission['location'] || "";
+    
+    // Get Pillars (column G)
+    const pillars = submission['Pillars'] || "";
+    
+    // Get Behaviors (column H)
+    const behaviors = submission['Behaviors'] || "";
+    
+    // Get comments (column I)
+    const comments = submission['Teacher Comments'] || "";
+    
+    // Create row HTML
     rowsHTML += `
       <tr class="${rowClass}">
         <td>${timeStr}</td>
-        <td>${escapeHTML(teacherName)}</td>
+        <td><a href="mailto:${escapeHTML(teacherEmail)}">${escapeHTML(teacherEmail)}</a></td>
         <td>${escapeHTML(studentName)}</td>
         <td>${escapeHTML(location)}</td>
         <td>${escapeHTML(pillars)}</td>
