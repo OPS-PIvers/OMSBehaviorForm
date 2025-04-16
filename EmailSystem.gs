@@ -806,6 +806,12 @@ function onOpen() {
     .addSeparator()
     .addItem('Process All Form Responses', 'processAllFormResponses')
     .addItem('Log Form Field Names', 'logFormFieldNames')
+    .addSeparator()
+    .addSubMenu(ui.createMenu('Admin Daily Summary')
+      .addItem('Setup Daily Summary Trigger (3PM)', 'checkAndCreateDailySummaryTrigger')
+      .addItem('Remove Daily Summary Trigger', 'removeDailySummaryTrigger')
+      .addItem('Send Test Summary Email Now', 'sendTestDailySummaryEmail')
+    )
     .addToUi();
 }
 
