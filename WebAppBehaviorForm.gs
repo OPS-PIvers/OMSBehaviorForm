@@ -2238,19 +2238,6 @@ function updateBehaviorSystemMenu() {
 }
 
 /**
- * Event handler for when the spreadsheet is opened
- */
-function onOpen() {
-  updateBehaviorSystemMenu();
-  // Removed the call to updateBehaviorSystemMenu from EmailSystem.txt if it existed there
-  // to avoid duplicate menus. Only call it once.
-}
-
-// NOTE: The onEdit and updateAllBehaviorFormRows functions from DirectoryInfo.txt are separate.
-// They handle edits *directly* in the sheet, while this file handles the web app interaction.
-// You might keep both if you want both methods of interaction.
-
-/**
  * This function fixes the syntax error in your webapp
  * Place this function in the WebAppBehaviorForm.txt file
  */
