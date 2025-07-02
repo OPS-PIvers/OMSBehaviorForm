@@ -26,14 +26,18 @@ jobs:
     - name: Install clasp
       run: npm install -g @google/clasp
       
-    - name: Decrypt clasp credentials
-      env:
-        CLASP_SECRET: ${{ secrets.CLASP_SECRET }}
+    - name: Setup clasp credentials
       run: |
         echo "${{ secrets.CLASPRC_JSON }}" | base64 -d > ~/.clasprc.json
         
     - name: Verify clasp login
-      run: clasp login --status
+      run: |
+        echo "Checking clasp authentication..."
+        if ! clasp login --status; then
+          echo "⚠️ Clasp credentials may be expired or invalid"
+          echo "Please run 'clasp login' locally and update CLASPRC_JSON secret"
+          exit 1
+        fi
       
     - name: Push to Apps Script
       run: clasp push --force
