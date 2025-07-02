@@ -1,0 +1,28 @@
+{
+  "name": "oms-behavior-form",
+  "version": "1.0.0",
+  "description": "Google Apps Script project for student behavior forms",
+  "main": "WebAppBehaviorForm.gs",
+  "scripts": {
+    "deploy": "clasp push && clasp deploy",
+    "push": "clasp push",
+    "pull": "clasp pull",
+    "open": "clasp open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/OMSBehaviorForm.git"
+  },
+  "keywords": [
+    "google-apps-script",
+    "behavior-form",
+    "education",
+    "webapp"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@google/clasp": "^3.0.6-alpha"
+  }
+}

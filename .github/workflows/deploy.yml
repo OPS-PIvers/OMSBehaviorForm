@@ -1,0 +1,59 @@
+name: Deploy to Google Apps Script
+
+on:
+  push:
+    branches:
+      - main
+      - BehaviorFormTemplate
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Install clasp
+      run: npm install -g @google/clasp
+      
+    - name: Decrypt clasp credentials
+      env:
+        CLASP_SECRET: ${{ secrets.CLASP_SECRET }}
+      run: |
+        echo "${{ secrets.CLASPRC_JSON }}" | base64 -d > ~/.clasprc.json
+        
+    - name: Verify clasp login
+      run: clasp login --status
+      
+    - name: Push to Apps Script
+      run: clasp push --force
+      
+    - name: Deploy to Apps Script
+      env:
+        SCRIPT_ID: ${{ secrets.SCRIPT_ID }}
+      run: |
+        if [ -n "$SCRIPT_ID" ]; then
+          clasp deploy --description "Automated deployment from GitHub Actions - $(date)"
+        else
+          echo "SCRIPT_ID not set, skipping deployment creation"
+        fi
+        
+    - name: Get deployment info
+      run: clasp deployments
+      
+    - name: Notify deployment success
+      run: |
+        echo "✅ Successfully deployed to Google Apps Script!"
+        echo "📅 Deployment time: $(date)"
+        echo "🔗 Open project: $(clasp open --webapp || echo 'Run clasp open --webapp locally to get the URL')"
