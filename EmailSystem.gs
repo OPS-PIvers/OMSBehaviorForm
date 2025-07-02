@@ -10,7 +10,7 @@ const CONFIG = {
     BEHAVIOR_FORM: "Behavior Form" // Verify this sheet name
   },
   ADMIN_EMAILS: {
-    PRINCIPAL: "kim.vaneyll@orono.k12.mn.us", // Replace with actual principal email
+    PRINCIPAL: "kim.vaneyll", // Replace with actual principal email
     ASSOCIATE_PRINCIPAL: "sara.hunstiger@orono.k12.mn.us" // Replace with actual associate principal email
   },
   SEND_EMAILS: true, // Or false for testing
@@ -806,6 +806,12 @@ function onOpen() {
     .addSeparator()
     .addItem('Process All Form Responses', 'processAllFormResponses')
     .addItem('Log Form Field Names', 'logFormFieldNames')
+    .addSeparator()
+    .addSubMenu(ui.createMenu('Admin Daily Summary')
+      .addItem('Setup Daily Summary Trigger (3PM)', 'checkAndCreateDailySummaryTrigger')
+      .addItem('Remove Daily Summary Trigger', 'removeDailySummaryTrigger')
+      .addItem('Send Test Summary Email Now', 'sendTestDailySummaryEmail')
+    )
     .addToUi();
 }
 
