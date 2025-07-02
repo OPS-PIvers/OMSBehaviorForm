@@ -117,6 +117,7 @@ The GitHub Action runs on:
 - Use GitHub Secrets for all sensitive information
 - Regularly rotate your Google Apps Script credentials
 - Consider using service accounts for production deployments
+- Ensure base64 credentials are entered as a single line without spaces
 
 ## Local Development Commands
 
