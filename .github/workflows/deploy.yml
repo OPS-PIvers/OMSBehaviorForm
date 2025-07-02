@@ -28,7 +28,7 @@ jobs:
       
     - name: Setup clasp credentials
       run: |
-        echo "${{ secrets.CLASPRC_JSON }}" | base64 -d > ~/.clasprc.json
+        echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
         
     - name: Verify clasp login
       run: |
