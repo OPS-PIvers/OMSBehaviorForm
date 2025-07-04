@@ -9,7 +9,9 @@
  * Handle GET requests to serve the web app
  */
 function doGet(e) {
-  try {
+  // Wrap the main logic of doGet with safeExecute for robust error handling
+  // safeExecute is defined in errorHandling.gs
+  const result = safeExecute(function() {
     // Check if system is set up
     if (!isSystemSetup()) {
       return HtmlService.createHtmlOutput(createSetupRequiredPage())
@@ -18,11 +20,16 @@ function doGet(e) {
     }
 
     // Get system configuration
-    const config = generateWorkingConfig();
-    const pillars = getSystemPillars();
+    const config = generateWorkingConfig(); // Assumed to exist
+    const pillars = getSystemPillars(); // Assumed to exist
 
     if (!config || !pillars) {
-      return HtmlService.createHtmlOutput(createErrorPage('Configuration Error'))
+      // This specific error might be better handled by returning a custom error page directly
+      // rather than relying on ErrorHandler.handleSystemError's generic message,
+      // but for demonstration, we'll let safeExecute catch it if generateWorkingConfig or getSystemPillars throws.
+      // Alternatively, throw a custom error here:
+      // throw new Error('CONFIG_MISSING: System configuration or pillars data is missing.');
+      return HtmlService.createHtmlOutput(createErrorPage('Configuration Error: Essential system data (config or pillars) could not be loaded.'))
         .setTitle('Configuration Error')
         .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     }
@@ -35,12 +42,18 @@ function doGet(e) {
 
     return htmlOutput;
 
-  } catch (error) {
-    Logger.log('Web app error: ' + error.toString());
-    return HtmlService.createHtmlOutput(createErrorPage('System Error: ' + error.message))
+  }, 'doGet Web App Initialization'); // Context for error logging
+
+  // If safeExecute caught an error and returned an error object from ErrorHandler
+  if (result && result.success === false && result.showToUser === true) {
+    Logger.log('Error handled by safeExecute in doGet: ' + result.message);
+    // Return a standardized error page. createErrorPage is from webApp.gs itself.
+    return HtmlService.createHtmlOutput(createErrorPage('System Error: ' + result.message))
       .setTitle('System Error')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
+  // If everything went well, 'result' is the htmlOutput
+  return result;
 }
 
 /**
@@ -1336,6 +1349,132 @@ function createBehaviorFormHTML(config, pillars) {
 </body>
 </html>
   `;
+}
+
+/**
+ * Processes form submissions from the web app.
+ * This function is called via google.script.run from client-side JavaScript.
+ * @param {object} formData The raw data collected from the form.
+ * @return {object} A result object {success: boolean, message: string, errors?: object, warnings?: object}
+ */
+function processWebAppFormSubmission(formData) {
+  return safeExecute(function() {
+    Logger.log('Received form data: ' + JSON.stringify(formData));
+
+    // Define validation rules for the incoming formData
+    // These rules should align with the structure of `formData` collected by `collectFormData()` client-side
+    const validationRules = {
+      behaviorType: { type: 'string', required: true, pattern: /^(goodnews|stopthink)$/, message: 'Invalid behavior type.' },
+      studentFirst: { type: 'name', required: true, minLength: 2, message: 'Student first name is required and must be at least 2 characters.' },
+      studentLast: { type: 'name', required: true, minLength: 2, message: 'Student last name is required and must be at least 2 characters.' },
+      teacherName: { type: 'name', required: true, minLength: 2, message: 'Teacher name is required.' },
+      studentEmail: { type: 'email', required: false }, // Optional, but if provided, must be valid email
+      parent1Email: { type: 'email', required: function(data) { return !data.parent2Email; }, message: 'At least one parent email is required.'},
+      parent2Email: { type: 'email', required: function(data) { return !data.parent1Email; }, message: 'At least one parent email is required if Parent 1 email is not provided.'},
+      selectedPillars: { type: 'array', required: true, minItems: 1, message: 'At least one character pillar must be selected.' },
+      selectedBehaviors: { type: 'array', required: true, minItems: 1, message: 'At least one specific behavior must be selected.' },
+      location: { type: 'string', required: true, minLength: 1, message: 'Location is required.' },
+      comments: { type: 'string', required: false, maxLength: 2000, warnIfMissing: true, warnIfMissingMessage: "Consider adding comments for better context." }
+      // Note: parent names are not directly submitted but fetched/validated during lookup if that's the flow
+    };
+
+    // Perform validation using DataValidator
+    // Ensure DataValidator.gs is part of the project and its methods are accessible.
+    const validationResult = DataValidator.validateObject(formData, validationRules);
+
+    if (!validationResult.isValid) {
+      Logger.log('Form data validation failed: ' + JSON.stringify(validationResult.errors));
+      // Return validation errors to the client for display
+      // The client-side `handleSubmitSuccess` expects a specific structure.
+      return {
+        success: false,
+        message: 'Validation failed. Please check the highlighted fields.',
+        errors: validationResult.errors, // Send back specific field errors
+        warnings: validationResult.warnings
+      };
+    }
+
+    Logger.log('Form data validated successfully. Warnings: ' + JSON.stringify(validationResult.warnings));
+    const validatedData = formData; // Or validationResult.validatedData if sanitization happens in validateObject
+
+    // --- Placeholder for further processing ---
+    // 1. Sanitize validatedData inputs further if necessary (e.g. DataValidator.sanitizeInput for specific fields)
+    //    Example: validatedData.comments = DataValidator.sanitizeInput(validatedData.comments, 'text');
+    // 2. Look up student information if not already complete and verified (e.g., using lookupStudent function)
+    // 3. Record the behavior incident to the spreadsheet (e.g., using a function like `recordBehaviorToSheet(validatedData)`)
+    // 4. Send email notifications (e.g., using `EmailSystem.sendBehaviorEmail(validatedData)`)
+
+    // Simulate behavior recording and email sending for now
+    // recordBehavior(validatedData); // This function would write to a sheet
+    // sendNotificationEmails(validatedData); // This function would use MailApp
+
+    // Example successful response
+    return {
+      success: true,
+      message: `Behavior for ${validatedData.studentFirst} ${validatedData.studentLast} recorded successfully.`,
+      warnings: validationResult.warnings
+    };
+
+  }, 'processWebAppFormSubmission'); // Context for error logging
+}
+
+
+/**
+ * Enhanced form validation with detailed error messages
+ */
+
+function validateFormDataEnhanced(formData) {
+  const errors = [];
+  const warnings = [];
+
+  // Student name validation
+  if (!formData.studentFirst || formData.studentFirst.trim().length < 2) {
+    errors.push({
+      field: 'studentFirst',
+      message: 'Student first name must be at least 2 characters long'
+    });
+  }
+
+  if (!formData.studentLast || formData.studentLast.trim().length < 2) {
+    errors.push({
+      field: 'studentLast',
+      message: 'Student last name must be at least 2 characters long'
+    });
+  }
+
+  // Email validation with detailed feedback
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (formData.parent1Email && !emailRegex.test(formData.parent1Email)) {
+    errors.push({
+      field: 'parent1Email',
+      message: 'Parent 1 email format is invalid. Please check for typos.'
+    });
+  }
+
+  // Pillar and behavior validation
+  if (!formData.selectedPillars || formData.selectedPillars.length === 0) {
+    errors.push({
+      field: 'pillars',
+      message: 'Please select at least one character pillar that relates to the behavior'
+    });
+  }
+
+  if (!formData.selectedBehaviors || formData.selectedBehaviors.length === 0) {
+    errors.push({
+      field: 'behaviors',
+      message: 'Please select at least one specific behavior from the available options'
+    });
+  }
+
+  // Warning for missing optional data
+  if (!formData.comments || formData.comments.trim().length < 10) {
+    warnings.push({
+      field: 'comments',
+      message: 'Consider adding detailed comments to help parents understand the situation'
+    });
+  }
+
+  return { errors, warnings };
 }
 
 /**
