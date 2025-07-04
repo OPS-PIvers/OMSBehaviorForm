@@ -1337,7 +1337,7 @@ function saveConfiguration(schoolConfig, adminConfig, emailConfig, pillarConfig)
 }
 
 /**
- * Enhanced menu with professional wizard options
+ * Enhanced menu with web app deployment options
  */
 function createBehaviorSystemMenu() {
   const ui = SpreadsheetApp.getUi();
@@ -1347,8 +1347,16 @@ function createBehaviorSystemMenu() {
     ui.createMenu('📋 Behavior System')
       .addItem('🔧 Reconfigure System', 'setupWizard')
       .addSeparator()
+      .addSubMenu(ui.createMenu('🌐 Web Application')
+        .addItem('Deploy Web App', 'deployWebApp')
+        .addItem('Test Web App', 'testWebAppFunctionality')
+        .addItem('Open Web App (Test)', 'openWebAppForTesting')
+        .addItem('Get Web App URL', 'getWebAppURL')
+        .addItem('Validate Deployment Readiness', 'validateWebAppDeploymentReadiness'))
+      .addSeparator()
       .addSubMenu(ui.createMenu('🧪 Testing & Validation')
         .addItem('Test Complete System', 'testCompleteSystem')
+        .addItem('Test Form Submission', 'testFormSubmissionWithSampleData')
         .addItem('Test Professional Wizard', 'testProfessionalWizard')
         .addItem('Validate Configuration', 'validateCompleteConfiguration'))
       .addSeparator()
@@ -1362,7 +1370,7 @@ function createBehaviorSystemMenu() {
     ui.createMenu('📋 Behavior System')
       .addItem('🚀 Run Professional Setup', 'setupWizard')
       .addSeparator()
-      .addItem('🧪 Test Wizard Generation', 'testProfessionalWizard')
+      .addItem('🧪 Test System Components', 'testWebAppFunctionality')
       .addItem('ℹ️ About This System', 'showSystemInfo')
       .addToUi();
   }

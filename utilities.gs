@@ -70,6 +70,355 @@ function testBasicSystem() {
 }
 
 /**
+ * ================================================================================
+ * WEB APP DEPLOYMENT & TESTING - PHASE 3
+ * ================================================================================
+ */
+
+/**
+ * Deploy the web app
+ */
+function deployWebApp() {
+  const ui = SpreadsheetApp.getUi();
+
+  ui.alert(
+    'Deploy Web Application',
+    'To deploy the behavior form web app:\n\n' +
+    '1. In Apps Script, click "Deploy" → "New deployment"\n' +
+    '2. Choose "Web app" as the type\n' +
+    '3. Set "Execute as" to "User accessing the web app"\n' +
+    '4. Set "Who has access" to "Anyone with Google account" (or your domain)\n' +
+    '5. Click "Deploy"\n' +
+    '6. Copy the web app URL\n' +
+    '7. Share the URL with teachers\n\n' +
+    'The web app will use the current system configuration automatically.',
+    ui.ButtonSet.OK
+  );
+}
+
+/**
+ * Test web app functionality
+ */
+function testWebAppFunctionality() {
+  const results = [];
+
+  try {
+    // Test 1: Check if system is set up
+    const isSetup = isSystemSetup();
+    results.push(isSetup ? '✅ System is configured' : '❌ System not configured');
+
+    if (!isSetup) {
+      SpreadsheetApp.getUi().alert(
+        'Web App Test Results',
+        results.join('\n') + '\n\nPlease run the setup wizard first.',
+        SpreadsheetApp.getUi().ButtonSet.OK
+      );
+      return;
+    }
+
+    // Test 2: Check configuration generation
+    const config = generateWorkingConfig();
+    if (config && config.SCHOOL_NAME) {
+      results.push(`✅ Configuration loaded: ${config.SCHOOL_NAME}`);
+    } else {
+      results.push('❌ Configuration failed to load');
+    }
+
+    // Test 3: Check pillars data
+    const pillars = getSystemPillars();
+    if (pillars && pillars.length > 0) {
+      results.push(`✅ Character pillars loaded: ${pillars.length} pillars`);
+    } else {
+      results.push('❌ Character pillars not found');
+    }
+
+    // Test 4: Test HTML generation
+    try {
+      const html = createBehaviorFormHTML(config, pillars);
+      if (html && html.length > 5000) {
+        results.push('✅ Web app HTML generated successfully');
+      } else {
+        results.push('❌ Web app HTML generation failed');
+      }
+    } catch (error) {
+      results.push('❌ HTML generation error: ' + error.message);
+    }
+
+    // Test 5: Test student lookup
+    try {
+      const lookupResult = lookupStudent('John', 'Smith');
+      if (lookupResult) {
+        if (lookupResult.success) {
+          results.push('✅ Student lookup successful');
+        } else if (lookupResult.suggestions) {
+          results.push('✅ Student lookup with suggestions working');
+        } else {
+          results.push('✅ Student lookup working (not found)');
+        }
+      } else {
+        results.push('❌ Student lookup failed');
+      }
+    } catch (error) {
+      results.push('❌ Student lookup error: ' + error.message);
+    }
+
+    // Test 6: Test form processing
+    try {
+      const testFormData = {
+        behaviorType: 'goodnews',
+        studentFirst: 'Test',
+        studentLast: 'Student',
+        teacherName: 'Test Teacher',
+        parent1Email: 'test@example.com',
+        parent2Email: '',
+        selectedPillars: ['Responsibility'],
+        selectedBehaviors: ['completing work with academic honesty'],
+        location: 'Classroom',
+        comments: 'Test submission from web app test'
+      };
+
+      const processResult = processWebAppFormSubmission(testFormData);
+      if (processResult && processResult.success) {
+        results.push('✅ Form processing successful');
+      } else {
+        results.push('❌ Form processing failed: ' + (processResult ? processResult.message : 'Unknown error'));
+      }
+    } catch (error) {
+      results.push('❌ Form processing error: ' + error.message);
+    }
+
+    // Test 7: Check spreadsheet structure
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const behaviorSheet = ss.getSheetByName(config.SHEET_NAMES.BEHAVIOR_FORM);
+    if (behaviorSheet) {
+      results.push('✅ Behavior form sheet exists');
+    } else {
+      results.push('❌ Behavior form sheet missing');
+    }
+
+    // Show results
+    SpreadsheetApp.getUi().alert(
+      'Web App Test Results',
+      results.join('\n\n'),
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+
+  } catch (error) {
+    SpreadsheetApp.getUi().alert(
+      'Test Error',
+      'Error running web app test: ' + error.message,
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+    Logger.log('Web app test error: ' + error.toString());
+  }
+}
+
+/**
+ * Open web app in new window (for testing)
+ */
+function openWebAppForTesting() {
+  const ui = SpreadsheetApp.getUi();
+
+  if (!isSystemSetup()) {
+    ui.alert('System not set up. Please run the setup wizard first.');
+    return;
+  }
+
+  try {
+    // Create test HTML content
+    const config = generateWorkingConfig();
+    const pillars = getSystemPillars();
+    const html = createBehaviorFormHTML(config, pillars);
+
+    // Create HTML service and show as dialog for testing
+    const htmlOutput = HtmlService.createHtmlOutput(html)
+      .setWidth(900)
+      .setHeight(700)
+      .setTitle('Web App Test - ' + config.SCHOOL_NAME);
+
+    ui.showModalDialog(htmlOutput, 'Test Web Application');
+
+  } catch (error) {
+    ui.alert('Error opening web app for testing: ' + error.message);
+    Logger.log('Error opening web app for testing: ' + error.toString());
+  }
+}
+
+/**
+ * Get web app URL (if deployed)
+ */
+function getWebAppURL() {
+  const ui = SpreadsheetApp.getUi();
+
+  ui.alert(
+    'Web App URL',
+    'To get your web app URL:\n\n' +
+    '1. Go to Apps Script (Extensions > Apps Script)\n' +
+    '2. Click "Deploy" in the top right\n' +
+    '3. Look for existing web app deployments\n' +
+    '4. Copy the URL from the deployment\n\n' +
+    'If no deployment exists, use "Deploy Web App" first.\n\n' +
+    'Share this URL with teachers to access the behavior form.',
+    ui.ButtonSet.OK
+  );
+}
+
+/**
+ * Test form submission with sample data
+ */
+function testFormSubmissionWithSampleData() {
+  const ui = SpreadsheetApp.getUi();
+
+  if (!isSystemSetup()) {
+    ui.alert('System not set up. Please run the setup wizard first.');
+    return;
+  }
+
+  const response = ui.alert(
+    'Test Form Submission',
+    'This will submit a test behavior form with sample data.\n\n' +
+    'This will:\n' +
+    '• Add a test entry to the Behavior Form sheet\n' +
+    '• Send a test email (if email sending is enabled)\n\n' +
+    'Continue?',
+    ui.ButtonSet.YES_NO
+  );
+
+  if (response !== ui.Button.YES) return;
+
+  try {
+    const testData = {
+      behaviorType: 'goodnews',
+      studentFirst: 'Test',
+      studentLast: 'Student',
+      teacherName: 'Test Teacher',
+      studentEmail: 'test.student@school.edu',
+      parent1First: 'Test',
+      parent1Last: 'Parent',
+      parent1Email: Session.getActiveUser().getEmail(), // Send to current user for testing
+      parent2First: '',
+      parent2Last: '',
+      parent2Email: '',
+      selectedPillars: ['Responsibility', 'Respect'],
+      selectedBehaviors: ['completing work with academic honesty', 'following rules and directions willingly'],
+      location: 'Classroom',
+      comments: 'This is a test submission from the system validation process. The student demonstrated excellent character traits during today\'s lesson.'
+    };
+
+    const result = processWebAppFormSubmission(testData);
+
+    if (result.success) {
+      ui.alert(
+        'Test Successful',
+        'Test form submission completed successfully!\n\n' +
+        'Check:\n' +
+        '• Behavior Form sheet for the new entry\n' +
+        '• Your email for the test message\n\n' +
+        result.message,
+        ui.ButtonSet.OK
+      );
+    } else {
+      ui.alert(
+        'Test Failed',
+        'Test form submission failed:\n\n' + result.message,
+        ui.ButtonSet.OK
+      );
+    }
+
+  } catch (error) {
+    ui.alert(
+      'Test Error',
+      'Error during test submission: ' + error.message,
+      ui.ButtonSet.OK
+    );
+    Logger.log('Test form submission error: ' + error.toString());
+  }
+}
+
+/**
+ * Validate web app deployment readiness
+ */
+function validateWebAppDeploymentReadiness() {
+  const issues = [];
+
+  try {
+    // Check system setup
+    if (!isSystemSetup()) {
+      issues.push('❌ System not set up - run setup wizard first');
+    } else {
+      issues.push('✅ System is configured');
+    }
+
+    // Check configuration
+    const config = generateWorkingConfig();
+    if (!config) {
+      issues.push('❌ Configuration not found');
+    } else {
+      issues.push('✅ Configuration loaded');
+
+      if (!config.SCHOOL_NAME) {
+        issues.push('❌ School name not configured');
+      }
+
+      if (!config.PRIMARY_COLOR) {
+        issues.push('⚠️ Primary color not set - using default');
+      }
+    }
+
+    // Check pillars
+    const pillars = getSystemPillars();
+    if (!pillars || pillars.length === 0) {
+      issues.push('❌ No character pillars configured');
+    } else {
+      issues.push(`✅ Character pillars configured (${pillars.length})`);
+    }
+
+    // Check directory
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const directorySheet = ss.getSheetByName('Directory');
+    if (!directorySheet) {
+      issues.push('❌ Directory sheet not found');
+    } else {
+      const studentCount = Math.max(0, directorySheet.getLastRow() - 1);
+      if (studentCount === 0) {
+        issues.push('⚠️ No students in directory - add student data');
+      } else {
+        issues.push(`✅ Students in directory: ${studentCount}`);
+      }
+    }
+
+    // Check behavior form sheet
+    const behaviorSheet = ss.getSheetByName('Behavior Form');
+    if (!behaviorSheet) {
+      issues.push('❌ Behavior Form sheet not found');
+    } else {
+      issues.push('✅ Behavior Form sheet exists');
+    }
+
+    // Check email configuration
+    if (config && config.SEND_EMAILS) {
+      issues.push('✅ Email sending enabled');
+    } else {
+      issues.push('⚠️ Email sending disabled - check configuration');
+    }
+
+    SpreadsheetApp.getUi().alert(
+      'Web App Deployment Readiness',
+      issues.join('\n\n'),
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+
+  } catch (error) {
+    SpreadsheetApp.getUi().alert(
+      'Validation Error',
+      'Error validating deployment readiness: ' + error.message,
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+    Logger.log('Deployment readiness validation error: ' + error.toString());
+  }
+}
+
+/**
  * Validate system data integrity
  */
 function validateSystemData() {
