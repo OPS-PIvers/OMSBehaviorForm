@@ -92,11 +92,11 @@ function lookupStudent(firstName, lastName) {
  */
 
 /**
- * Process form submission from web app
+ * Enhanced form processing with advanced email system
  */
 function processWebAppFormSubmission(formData) {
   try {
-    Logger.log('Processing web app form submission: ' + JSON.stringify(formData));
+    Logger.log('Processing web app form submission with advanced email system');
 
     // Validate form data
     const validationErrors = validateWebAppFormData(formData);
@@ -107,31 +107,31 @@ function processWebAppFormSubmission(formData) {
       };
     }
 
-    // Get system configuration
-    const config = generateWorkingConfig();
-    if (!config) {
-      return {
-        success: false,
-        message: 'System configuration not found'
-      };
-    }
-
     // Save form data to spreadsheet
     saveFormDataToSpreadsheet(formData);
 
-    // Send email notification
-    const emailResult = sendBehaviorEmailNotification(formData, config);
-    if (!emailResult.success) {
-      Logger.log('Email sending failed: ' + emailResult.message);
-      // Continue anyway - form was saved
-    }
+    // Process advanced email with CC and tracking
+    const emailResult = processAdvancedEmailSubmission(formData);
 
     // Log successful submission
-    Logger.log(`Form submitted successfully for ${formData.studentFirst} ${formData.studentLast}`);
+    const studentName = `${formData.studentFirst} ${formData.studentLast}`;
+    Logger.log(`Form submitted successfully for ${studentName}`);
+
+    let message = `Form submitted successfully for ${studentName}.`;
+    if (emailResult.success) {
+      message += ` Email sent to ${emailResult.recipients.length} parent(s)`;
+      if (emailResult.ccRecipients && emailResult.ccRecipients.length > 0) {
+        message += ` with CC to ${emailResult.ccRecipients.length} administrator(s)`;
+      }
+      message += '.';
+    } else {
+      message += ' However, email sending failed: ' + emailResult.message;
+    }
 
     return {
       success: true,
-      message: `Form submitted successfully for ${formData.studentFirst} ${formData.studentLast}. ${emailResult.success ? 'Email sent to parents.' : 'Email sending failed - please check configuration.'}`
+      message: message,
+      emailResult: emailResult
     };
 
   } catch (error) {

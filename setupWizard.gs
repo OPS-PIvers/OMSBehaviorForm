@@ -1337,7 +1337,7 @@ function saveConfiguration(schoolConfig, adminConfig, emailConfig, pillarConfig)
 }
 
 /**
- * Enhanced menu with web app deployment options
+ * Enhanced menu with advanced email options
  */
 function createBehaviorSystemMenu() {
   const ui = SpreadsheetApp.getUi();
@@ -1353,6 +1353,16 @@ function createBehaviorSystemMenu() {
         .addItem('Open Web App (Test)', 'openWebAppForTesting')
         .addItem('Get Web App URL', 'getWebAppURL')
         .addItem('Validate Deployment Readiness', 'validateWebAppDeploymentReadiness'))
+      .addSeparator()
+      .addSubMenu(ui.createMenu('📧 Email System')
+        .addItem('Preview Email Template', 'previewEmailTemplate')
+        .addItem('Test Email Sending', 'testEmailSending')
+        .addItem('Test Both Templates', 'testBothEmailTemplates')
+        .addItem('Configure Admin CC', 'configureAdministratorCC')
+        .addSeparator()
+        .addItem('View Email Activity Log', 'viewEmailActivityLog')
+        .addItem('Export Email Log', 'exportEmailActivityLog')
+        .addItem('Clear Email Log', 'clearEmailActivityLog'))
       .addSeparator()
       .addSubMenu(ui.createMenu('🧪 Testing & Validation')
         .addItem('Test Complete System', 'testCompleteSystem')

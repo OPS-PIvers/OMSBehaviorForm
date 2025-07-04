@@ -71,6 +71,364 @@ function testBasicSystem() {
 
 /**
  * ================================================================================
+ * EMAIL PREVIEW AND TESTING SYSTEM - PHASE 4
+ * ================================================================================
+ */
+
+/**
+ * Preview email template in browser
+ */
+function previewEmailTemplate() {
+  const ui = SpreadsheetApp.getUi();
+
+  if (!isSystemSetup()) {
+    ui.alert('System not set up. Please run the setup wizard first.');
+    return;
+  }
+
+  try {
+    // Create sample email data
+    const sampleData = createSampleEmailData();
+    const config = generateWorkingConfig();
+
+    // Generate email content
+    const emailData = buildEmailData(sampleData, config, getSystemPillars());
+    const emailContent = generateProfessionalEmailContent(emailData, config);
+
+    // Show preview in dialog
+    const htmlOutput = HtmlService.createHtmlOutput(emailContent.htmlBody)
+      .setWidth(700)
+      .setHeight(600)
+      .setTitle('Email Template Preview - ' + (sampleData.behaviorType === 'goodnews' ? 'Good News' : 'Stop & Think'));
+
+    ui.showModalDialog(htmlOutput, 'Email Preview');
+
+  } catch (error) {
+    ui.alert('Preview Error', 'Error generating email preview: ' + error.message);
+    Logger.log('Email preview error: ' + error.toString());
+  }
+}
+
+/**
+ * Create sample email data for testing
+ */
+function createSampleEmailData() {
+  return {
+    behaviorType: 'goodnews', // Change to 'stopthink' to preview improvement emails
+    studentFirst: 'Sarah',
+    studentLast: 'Johnson',
+    teacherName: 'Ms. Smith',
+    studentEmail: 'sarah.johnson@school.edu',
+    parent1First: 'Jennifer',
+    parent1Last: 'Johnson',
+    parent1Email: 'jennifer.johnson@email.com',
+    parent2First: 'Michael',
+    parent2Last: 'Johnson',
+    parent2Email: 'michael.johnson@email.com',
+    selectedPillars: ['Responsibility', 'Caring'],
+    selectedBehaviors: [
+      'offering help or support to peers in need',
+      'completing work with academic honesty'
+    ],
+    location: 'Classroom',
+    comments: 'Sarah consistently demonstrates leadership by helping her classmates understand difficult concepts. She approaches learning with enthusiasm and shows genuine care for her peers\' success.'
+  };
+}
+
+/**
+ * Test email sending to current user
+ */
+function testEmailSending() {
+  const ui = SpreadsheetApp.getUi();
+
+  if (!isSystemSetup()) {
+    ui.alert('System not set up. Please run the setup wizard first.');
+    return;
+  }
+
+  const response = ui.alert(
+    'Test Email Sending',
+    'This will send a test email to your email address to verify the email system is working.\n\n' +
+    'The test email will use sample student data.\n\n' +
+    'Continue?',
+    ui.ButtonSet.YES_NO
+  );
+
+  if (response !== ui.Button.YES) return;
+
+  try {
+    // Create test data with current user as recipient
+    const testData = createSampleEmailData();
+    testData.parent1Email = Session.getActiveUser().getEmail();
+    testData.parent2Email = '';
+    testData.comments = 'This is a test email from the Student Behavior Management System. If you received this, the email system is working correctly!';
+
+    // Process the email
+    const result = processAdvancedEmailSubmission(testData);
+
+    if (result.success) {
+      ui.alert(
+        'Test Email Sent',
+        'Test email sent successfully!\n\n' +
+        'Check your email inbox for the test message.\n\n' +
+        'Recipients: ' + result.recipients.join(', ') + '\n' +
+        (result.ccRecipients.length > 0 ? 'CC: ' + result.ccRecipients.join(', ') : 'No CC recipients'),
+        ui.ButtonSet.OK
+      );
+    } else {
+      ui.alert(
+        'Test Email Failed',
+        'Test email failed to send:\n\n' + result.message,
+        ui.ButtonSet.OK
+      );
+    }
+
+  } catch (error) {
+    ui.alert(
+      'Test Error',
+      'Error during email test: ' + error.message,
+      ui.ButtonSet.OK
+    );
+    Logger.log('Email test error: ' + error.toString());
+  }
+}
+
+/**
+ * Test both email templates (Good News and Stop & Think)
+ */
+function testBothEmailTemplates() {
+  const ui = SpreadsheetApp.getUi();
+
+  if (!isSystemSetup()) {
+    ui.alert('System not set up. Please run the setup wizard first.');
+    return;
+  }
+
+  const response = ui.alert(
+    'Test Both Email Templates',
+    'This will send two test emails to demonstrate both the Good News and Stop & Think templates.\n\n' +
+    'Both emails will be sent to your email address.\n\n' +
+    'Continue?',
+    ui.ButtonSet.YES_NO
+  );
+
+  if (response !== ui.Button.YES) return;
+
+  try {
+    const userEmail = Session.getActiveUser().getEmail();
+    const results = [];
+
+    // Test Good News email
+    const goodNewsData = createSampleEmailData();
+    goodNewsData.behaviorType = 'goodnews';
+    goodNewsData.parent1Email = userEmail;
+    goodNewsData.parent2Email = '';
+    goodNewsData.comments = 'This is a test Good News email demonstrating positive behavior recognition.';
+
+    const goodNewsResult = processAdvancedEmailSubmission(goodNewsData);
+    results.push('Good News Email: ' + (goodNewsResult.success ? 'Sent' : 'Failed - ' + goodNewsResult.message));
+
+    // Wait a moment between emails
+    Utilities.sleep(2000);
+
+    // Test Stop & Think email
+    const stopThinkData = createSampleEmailData();
+    stopThinkData.behaviorType = 'stopthink';
+    stopThinkData.parent1Email = userEmail;
+    stopThinkData.parent2Email = '';
+    stopThinkData.selectedBehaviors = [
+      'interrupting or talking over others frequently',
+      'being off-task or distracting to others'
+    ];
+    stopThinkData.comments = 'This is a test Stop & Think email demonstrating improvement opportunity communication.';
+
+    const stopThinkResult = processAdvancedEmailSubmission(stopThinkData);
+    results.push('Stop & Think Email: ' + (stopThinkResult.success ? 'Sent' : 'Failed - ' + stopThinkResult.message));
+
+    ui.alert(
+      'Email Template Test Complete',
+      results.join('\n\n') + '\n\nCheck your email inbox for both test messages.',
+      ui.ButtonSet.OK
+    );
+
+  } catch (error) {
+    ui.alert(
+      'Test Error',
+      'Error during email template test: ' + error.message,
+      ui.ButtonSet.OK
+    );
+    Logger.log('Email template test error: ' + error.toString());
+  }
+}
+
+/**
+ * View email activity log
+ */
+function viewEmailActivityLog() {
+  const ui = SpreadsheetApp.getUi();
+
+  try {
+    const logs = getEmailActivityLog();
+
+    if (logs.length === 0) {
+      ui.alert(
+        'Email Activity Log',
+        'No email activity recorded yet.\n\nSubmit some behavior forms to see email activity here.',
+        ui.ButtonSet.OK
+      );
+      return;
+    }
+
+    // Create summary of recent activity
+    const recentLogs = logs.slice(-10).reverse(); // Last 10 entries, newest first
+    const logSummary = recentLogs.map(log => {
+      const date = new Date(log.timestamp).toLocaleDateString();
+      const time = new Date(log.timestamp).toLocaleTimeString();
+      const status = log.success ? '✅' : '❌';
+      return `${status} ${date} ${time} - ${log.studentName} (${log.behaviorType}) - ${log.teacherName}`;
+    }).join('\n');
+
+    ui.alert(
+      'Recent Email Activity',
+      `Last ${recentLogs.length} email activities:\n\n${logSummary}\n\nTotal logged activities: ${logs.length}`,
+      ui.ButtonSet.OK
+    );
+
+  } catch (error) {
+    ui.alert(
+      'Log Error',
+      'Error retrieving email activity log: ' + error.message,
+      ui.ButtonSet.OK
+    );
+    Logger.log('Email log retrieval error: ' + error.toString());
+  }
+}
+
+/**
+ * Configure administrator CC settings
+ */
+function configureAdministratorCC() {
+  const ui = SpreadsheetApp.getUi();
+
+  if (!isSystemSetup()) {
+    ui.alert('System not set up. Please run the setup wizard first.');
+    return;
+  }
+
+  ui.alert(
+    'Configure Administrator CC',
+    'To configure which administrators receive copies of behavior emails:\n\n' +
+    '1. Open the "Admin Contacts" sheet\n' +
+    '2. Set "Include in CC" to "Yes" or "No" for each administrator\n' +
+    '3. Save the changes\n\n' +
+    'The changes will take effect immediately for new behavior reports.',
+    ui.ButtonSet.OK
+  );
+
+  // Navigate to admin sheet
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const adminSheet = ss.getSheetByName('Admin Contacts');
+    if (adminSheet) {
+      ss.setActiveSheet(adminSheet);
+    }
+  } catch (error) {
+    Logger.log('Error navigating to admin sheet: ' + error.toString());
+  }
+}
+
+/**
+ * Export email activity log to CSV
+ */
+function exportEmailActivityLog() {
+  const ui = SpreadsheetApp.getUi();
+
+  try {
+    const logs = getEmailActivityLog();
+
+    if (logs.length === 0) {
+      ui.alert('No email activity to export.');
+      return;
+    }
+
+    // Create CSV content
+    const headers = [
+      'Timestamp', 'Student Name', 'Teacher Name', 'Behavior Type',
+      'Location', 'Pillars', 'Behaviors', 'Parent Recipients',
+      'Admin CC Recipients', 'Success', 'Error Message'
+    ];
+
+    const csvRows = [headers.join(',')];
+
+    logs.forEach(log => {
+      const row = [
+        new Date(log.timestamp).toISOString(),
+        `"${log.studentName}"`,
+        `"${log.teacherName}"`,
+        log.behaviorType,
+        `"${log.location}"`,
+        `"${log.pillars}"`,
+        `"${log.behaviors}"`,
+        `"${log.parentRecipients}"`,
+        `"${log.adminCCRecipients}"`,
+        log.success,
+        `"${log.errorMessage}"`
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const csvContent = csvRows.join('\n');
+
+    // Create file in Drive
+    const fileName = `email_activity_log_${new Date().toISOString().split('T')[0]}.csv`;
+    const blob = Utilities.newBlob(csvContent, 'text/csv', fileName);
+    const file = DriveApp.createFile(blob);
+
+    ui.alert(
+      'Export Complete',
+      `Email activity log exported to Google Drive:\n\n` +
+      `File: ${fileName}\n` +
+      `File ID: ${file.getId()}\n` +
+      `Records: ${logs.length}`,
+      ui.ButtonSet.OK
+    );
+
+  } catch (error) {
+    ui.alert(
+      'Export Error',
+      'Error exporting email activity log: ' + error.message,
+      ui.ButtonSet.OK
+    );
+    Logger.log('Email log export error: ' + error.toString());
+  }
+}
+
+/**
+ * Clear email activity log
+ */
+function clearEmailActivityLog() {
+  const ui = SpreadsheetApp.getUi();
+
+  const response = ui.alert(
+    'Clear Email Activity Log',
+    'This will permanently delete all email activity log entries.\n\n' +
+    'This action cannot be undone.\n\n' +
+    'Continue?',
+    ui.ButtonSet.YES_NO
+  );
+
+  if (response === ui.Button.YES) {
+    try {
+      PropertiesService.getScriptProperties().deleteProperty('EMAIL_ACTIVITY_LOG');
+      ui.alert('Email activity log cleared successfully.');
+    } catch (error) {
+      ui.alert('Error clearing log: ' + error.message);
+    }
+  }
+}
+
+/**
+ * ================================================================================
  * WEB APP DEPLOYMENT & TESTING - PHASE 3
  * ================================================================================
  */
