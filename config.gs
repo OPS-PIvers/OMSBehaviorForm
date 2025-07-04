@@ -261,3 +261,199 @@ function getSystemPillars() {
   }
   return DEFAULT_PILLARS;
 }
+
+/**
+ * ================================================================================
+ * ENHANCED CONFIGURATION FUNCTIONS - PHASE 2
+ * ================================================================================
+ */
+
+/**
+ * Validate configuration completeness
+ */
+function validateCompleteConfiguration() {
+  const config = getStoredConfiguration();
+  const errors = [];
+
+  if (!config) {
+    errors.push('No configuration found');
+    return errors;
+  }
+
+  // Validate school config
+  if (!config.schoolConfig || !config.schoolConfig.schoolName) {
+    errors.push('School name is required');
+  }
+
+  // Validate admin config
+  if (!config.adminConfig || config.adminConfig.length === 0) {
+    errors.push('At least one administrator is required');
+  } else {
+    config.adminConfig.forEach((admin, index) => {
+      if (!admin.title) errors.push(`Administrator ${index + 1} is missing a title`);
+      if (!admin.email || !admin.email.includes('@')) {
+        errors.push(`Administrator ${index + 1} has an invalid email address`);
+      }
+    });
+  }
+
+  // Validate email config
+  if (!config.emailConfig) {
+    errors.push('Email configuration is missing');
+  } else {
+    if (!config.emailConfig.goodNewsSubject) errors.push('Good news email subject is required');
+    if (!config.emailConfig.stopThinkSubject) errors.push('Stop & think email subject is required');
+  }
+
+  // Validate pillar config
+  if (!config.pillarConfig || !config.pillarConfig.pillars || config.pillarConfig.pillars.length === 0) {
+    errors.push('At least one character pillar is required');
+  }
+
+  return errors;
+}
+
+/**
+ * Get configuration summary for display
+ */
+function getConfigurationSummary() {
+  const config = getStoredConfiguration();
+  if (!config) return null;
+
+  return {
+    school: config.schoolConfig.schoolName || 'Not configured',
+    district: config.schoolConfig.districtName || '',
+    adminCount: config.adminConfig ? config.adminConfig.length : 0,
+    pillarCount: config.pillarConfig && config.pillarConfig.pillars ? config.pillarConfig.pillars.length : 0,
+    setupDate: PropertiesService.getScriptProperties().getProperty('SETUP_DATE'),
+    wizardVersion: PropertiesService.getScriptProperties().getProperty('WIZARD_VERSION') || 'basic'
+  };
+}
+
+/**
+ * Update configuration from wizard data
+ */
+function updateConfigurationFromWizard(newConfig) {
+  try {
+    // Validate the new configuration
+    if (!newConfig.schoolConfig || !newConfig.schoolConfig.schoolName) {
+      throw new Error('Invalid school configuration');
+    }
+
+    if (!newConfig.adminConfig || newConfig.adminConfig.length === 0) {
+      throw new Error('At least one administrator is required');
+    }
+
+    // Save the configuration
+    saveConfiguration(
+      newConfig.schoolConfig,
+      newConfig.adminConfig,
+      newConfig.emailConfig,
+      newConfig.pillarConfig
+    );
+
+    // Update setup status
+    PropertiesService.getScriptProperties().setProperties({
+      'SETUP_COMPLETE': 'true',
+      'SETUP_DATE': new Date().toISOString(),
+      'LAST_UPDATE': new Date().toISOString()
+    });
+
+    return { success: true };
+
+  } catch (error) {
+    Logger.log('Error updating configuration: ' + error.toString());
+    return { success: false, message: error.message };
+  }
+}
+
+/**
+ * Reset configuration (for testing/reconfiguration)
+ */
+function resetSystemConfiguration() {
+  try {
+    // Clear script properties
+    const properties = PropertiesService.getScriptProperties();
+    const keys = properties.getKeys();
+    if (keys.length > 0) {
+      properties.deleteAll();
+    }
+
+    // Clear configuration sheets but keep structure
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // Clear config sheet data (keep headers)
+    const configSheet = ss.getSheetByName(SYSTEM_CONFIG.SHEETS.CONFIG);
+    if (configSheet && configSheet.getLastRow() > 1) {
+      configSheet.getRange(2, 1, configSheet.getLastRow() - 1, 3).clearContent();
+    }
+
+    // Clear admin contacts data (keep headers)
+    const adminSheet = ss.getSheetByName(SYSTEM_CONFIG.SHEETS.ADMIN_CONTACTS);
+    if (adminSheet && adminSheet.getLastRow() > 1) {
+      adminSheet.getRange(2, 1, adminSheet.getLastRow() - 1, 4).clearContent();
+    }
+
+    // Clear pillars data (keep headers)
+    const pillarsSheet = ss.getSheetByName(SYSTEM_CONFIG.SHEETS.PILLARS);
+    if (pillarsSheet && pillarsSheet.getLastRow() > 1) {
+      pillarsSheet.getRange(2, 1, pillarsSheet.getLastRow() - 1, 6).clearContent();
+    }
+
+    Logger.log('System configuration reset successfully');
+    return { success: true };
+
+  } catch (error) {
+    Logger.log('Error resetting configuration: ' + error.toString());
+    return { success: false, message: error.message };
+  }
+}
+
+/**
+ * ================================================================================
+ * ADVANCED CUSTOMIZATION - PHASE 2
+ * ================================================================================
+ */
+
+/**
+ * Customize wizard colors and branding
+ */
+function customizeWizardAppearance(customization) {
+  // This function allows advanced users to customize the wizard appearance
+  // Store customization in properties
+  PropertiesService.getScriptProperties().setProperty(
+    'WIZARD_CUSTOMIZATION',
+    JSON.stringify(customization)
+  );
+}
+
+/**
+ * Get wizard customization
+ */
+function getWizardCustomization() {
+  try {
+    const stored = PropertiesService.getScriptProperties().getProperty('WIZARD_CUSTOMIZATION');
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    Logger.log('Error getting wizard customization: ' + error.toString());
+    return null;
+  }
+}
+
+/**
+ * Export configuration as JSON for backup/sharing
+ */
+function exportSystemConfiguration() {
+  const config = getStoredConfiguration();
+  const summary = getConfigurationSummary();
+
+  const exportData = {
+    version: ATTRIBUTION.VERSION,
+    exportDate: new Date().toISOString(),
+    creator: ATTRIBUTION.CREATED_BY,
+    configuration: config,
+    summary: summary
+  };
+
+  return JSON.stringify(exportData, null, 2);
+}

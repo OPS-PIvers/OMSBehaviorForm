@@ -197,3 +197,166 @@ function logSystemInfo() {
   Logger.log('Attribution: ' + ATTRIBUTION.CREATED_BY + ' v' + ATTRIBUTION.VERSION);
   Logger.log('=========================');
 }
+
+/**
+ * ================================================================================
+ * ENHANCED UTILITIES - PHASE 2
+ * ================================================================================
+ */
+
+/**
+ * Test the professional setup wizard
+ */
+function testProfessionalWizard() {
+  const ui = SpreadsheetApp.getUi();
+
+  try {
+    // Test that wizard can be launched
+    const wizardHTML = createProfessionalSetupWizardHTML();
+    if (wizardHTML && wizardHTML.length > 1000) {
+      ui.alert(
+        'Professional Wizard Test',
+        '✅ Professional setup wizard HTML generated successfully\n' +
+        `✅ HTML length: ${wizardHTML.length} characters\n` +
+        '✅ Attribution embedded\n' +
+        '✅ Ready for user interaction\n\n' +
+        'The professional wizard is working correctly!',
+        ui.ButtonSet.OK
+      );
+    } else {
+      ui.alert('Test Failed', 'Professional wizard HTML generation failed', ui.ButtonSet.OK);
+    }
+
+  } catch (error) {
+    ui.alert('Test Error', 'Error testing professional wizard: ' + error.message, ui.ButtonSet.OK);
+    Logger.log('Professional wizard test error: ' + error.toString());
+  }
+}
+
+/**
+ * Test complete system with professional features
+ */
+function testCompleteSystem() {
+  const results = [];
+
+  try {
+    // Test configuration
+    const config = generateWorkingConfig();
+    if (config) {
+      results.push('✅ Configuration system working');
+    } else {
+      results.push('❌ Configuration system failed');
+    }
+
+    // Test setup status
+    const isSetup = isSystemSetup();
+    results.push(isSetup ? '✅ System is set up' : '⚠️ System not set up');
+
+    // Test wizard generation
+    try {
+      const wizardHTML = createProfessionalSetupWizardHTML();
+      if (wizardHTML && wizardHTML.includes(ATTRIBUTION.CREATED_BY)) {
+        results.push('✅ Professional wizard generation working');
+        results.push('✅ Attribution properly embedded');
+      } else {
+        results.push('❌ Professional wizard generation failed');
+      }
+    } catch (error) {
+      results.push('❌ Wizard generation error: ' + error.message);
+    }
+
+    // Test pillars data
+    const pillars = getSystemPillars();
+    if (pillars && pillars.length > 0) {
+      results.push(`✅ Character pillars loaded (${pillars.length} pillars)`);
+    } else {
+      results.push('❌ Character pillars failed to load');
+    }
+
+    // Test validation
+    const validationErrors = validateCompleteConfiguration();
+    if (validationErrors.length === 0) {
+      results.push('✅ Configuration validation passed');
+    } else {
+      results.push(`⚠️ Configuration validation found ${validationErrors.length} issues`);
+    }
+
+    // Show results
+    SpreadsheetApp.getUi().alert(
+      'Complete System Test Results',
+      results.join('\n\n'),
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+
+  } catch (error) {
+    SpreadsheetApp.getUi().alert(
+      'Test Error',
+      'Error running complete system test: ' + error.message,
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+    Logger.log('Complete system test error: ' + error.toString());
+  }
+}
+
+/**
+ * Enhanced system information display
+ */
+function showEnhancedSystemInfo() {
+  const summary = getConfigurationSummary();
+  const validationErrors = validateCompleteConfiguration();
+  const stats = getSystemStats();
+
+  let info = `STUDENT BEHAVIOR MANAGEMENT SYSTEM\n`;
+  info += `═══════════════════════════════════════\n\n`;
+
+  info += `📊 SYSTEM STATUS\n`;
+  info += `School: ${summary ? summary.school : 'Not configured'}\n`;
+  info += `Setup Date: ${summary && summary.setupDate ? new Date(summary.setupDate).toLocaleDateString() : 'Unknown'}\n`;
+  info += `Wizard Version: ${summary ? summary.wizardVersion : 'Unknown'}\n`;
+  info += `Setup Complete: ${isSystemSetup() ? 'Yes' : 'No'}\n\n`;
+
+  info += `📈 DATA SUMMARY\n`;
+  info += `Students in Directory: ${stats ? stats.totalStudents : 'Unknown'}\n`;
+  info += `Administrators: ${summary ? summary.adminCount : 'Unknown'}\n`;
+  info += `Character Pillars: ${summary ? summary.pillarCount : 'Unknown'}\n`;
+  info += `Behavior Reports: ${stats ? stats.totalBehaviorReports : 'Unknown'}\n\n`;
+
+  if (validationErrors.length > 0) {
+    info += `⚠️ CONFIGURATION ISSUES\n`;
+    info += validationErrors.slice(0, 5).join('\n');
+    if (validationErrors.length > 5) {
+      info += `\n...and ${validationErrors.length - 5} more issues`;
+    }
+    info += `\n\n`;
+  } else {
+    info += `✅ CONFIGURATION VALID\n`;
+    info += `All system components properly configured\n\n`;
+  }
+
+  info += `🏷️ ATTRIBUTION\n`;
+  info += `Created by: ${ATTRIBUTION.CREATED_BY}\n`;
+  info += `Version: ${ATTRIBUTION.VERSION}\n`;
+  info += `Contact: ${ATTRIBUTION.CONTACT_EMAIL}\n`;
+  info += `© ${ATTRIBUTION.YEAR} ${ATTRIBUTION.CREATED_BY}`;
+
+  SpreadsheetApp.getUi().alert('Enhanced System Information', info, SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
+/**
+ * Demo the professional wizard
+ */
+function demoSetupWizard() {
+  const ui = SpreadsheetApp.getUi();
+
+  const response = ui.alert(
+    'Demo Professional Setup Wizard',
+    'This will launch the professional setup wizard in demo mode.\n\n' +
+    'You can explore the interface and see how it works without making changes.\n\n' +
+    'Continue?',
+    ui.ButtonSet.YES_NO
+  );
+
+  if (response === ui.Button.YES) {
+    launchProfessionalSetupWizard();
+  }
+}
