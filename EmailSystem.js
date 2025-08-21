@@ -10,10 +10,12 @@ const CONFIG = {
     BEHAVIOR_FORM: "Behavior Form" // Verify this sheet name
   },
   ADMIN_EMAILS: {
-    PRINCIPAL: "kim.vaneyll@orono.k12.mn.us", // Replace with actual principal email
-    ASSOCIATE_PRINCIPAL: "sara.hunstiger@orono.k12.mn.us" // Replace with actual associate principal email
+    PRINCIPAL: "kimberly.vaneyll@orono.k12.mn.us", // Replace with actual principal email
+    ASSOCIATE_PRINCIPAL: "sara.hunstiger@orono.k12.mn.us", // Replace with actual associate principal email
+    ACADEMIC_SUPPORT: "kelly.hubert@orono.k12.mn.us",
+    TECH_SUPPORT: "paul.ivers@orono.k12.mn.us" // Remove after confirming the other admins receive the emails.
   },
-  SEND_EMAILS: true, // Or false for testing
+  SEND_EMAILS: false, // CHANGE THIS AT THE BEGINNING OF THE SCHOOL YEAR
   SIMILARITY_THRESHOLD: 3,  // Max Levenshtein distance for suggestions
   MAX_SUGGESTIONS: 5        // Max number of suggestions to show
 };
@@ -806,6 +808,14 @@ function onOpen() {
     .addSeparator()
     .addItem('Process All Form Responses', 'processAllFormResponses')
     .addItem('Log Form Field Names', 'logFormFieldNames')
+        .addSeparator()
+    .addItem('Parse Execution Logs from Column A', 'parseAllLogsInColumnA')
+    .addSeparator()
+    .addSubMenu(ui.createMenu('Admin Daily Summary')
+      .addItem('Setup Daily Summary Trigger (3PM)', 'checkAndCreateDailySummaryTrigger')
+      .addItem('Remove Daily Summary Trigger', 'removeDailySummaryTrigger')
+      .addItem('Send Test Summary Email Now', 'sendTestDailySummaryEmail')
+    )
     .addToUi();
 }
 

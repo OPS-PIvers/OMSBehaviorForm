@@ -391,7 +391,7 @@ function createImprovedBehaviorForm() {
 </head>
 <body>
   <div class="container">
-    <h1>Student Behavior Form</h1>
+    <h1>OMS Character Form</h1>
     <div id="statusMessage"></div>
 
     <form id="behaviorForm">
@@ -540,12 +540,10 @@ function createImprovedBehaviorForm() {
         <h2>Notify Administrators (Optional)</h2>
         <div class="section-content">
           <div class="form-group admin-cc-options">
-            <label>CC Administrators on Parent Email:</label>
             <div class="checkbox-group">
-              <label class="checkbox-label"><input type="checkbox" id="ccPrincipal" name="ccPrincipal" checked> Principal</label>
-              <label class="checkbox-label"><input type="checkbox" id="ccAssociatePrincipal" name="ccAssociatePrincipal" checked> Associate Principal</label>
+              <label class="checkbox-label"><input type="checkbox" id="ccAdmins" name="ccAdmins"> Check the box to CC building admin on this email to parent(s).</label>
             </div>
-            <div class="note-box">Uncheck boxes if you do NOT want specific administrators copied on the email.</div>
+            <div class="note-box">When checked, both the Principal and Associate Principal will be copied on the email. A daily summary of all submissions will be sent to administrators regardless of this setting.</div>
           </div>
         </div>
       </div>
@@ -1246,8 +1244,7 @@ function createImprovedBehaviorForm() {
     currentBehaviorType = 'goodnews';
     
     // Reset CC checkboxes to default (checked)
-    document.getElementById('ccPrincipal').checked = true;
-    document.getElementById('ccAssociatePrincipal').checked = true;
+    document.getElementById('ccAdmins').checked = false;
     
     // Clear student/parent fields
     clearStudentParentFields();
@@ -1444,33 +1441,32 @@ function createImprovedBehaviorForm() {
        });
 
 
-       // Form Submit Handler
-       document.getElementById('behaviorForm').addEventListener('submit', function(e) {
-           e.preventDefault();
-           document.getElementById('statusMessage').innerHTML = ''; // Clear status
-           const submitButton = document.getElementById('submitBtn');
-           submitButton.disabled = true; // Prevent double-clicks
-
-           // --- Gather Form Data ---
-           const formData = {
-               behaviorType: document.getElementById('behaviorType').value,
-               studentFirst: document.getElementById('studentFirst').value.trim(),
-               studentLast: document.getElementById('studentLast').value.trim(),
-               studentEmail: document.getElementById('studentEmail').value.trim(),
-               teacherName: document.getElementById('teacherName').value.trim(),
-               parent1First: document.getElementById('parent1First').value.trim(),
-               parent1Last: document.getElementById('parent1Last').value.trim(),
-               parent1Email: document.getElementById('parent1Email').value.trim(),
-               parent2First: document.getElementById('parent2First').value.trim(),
-               parent2Last: document.getElementById('parent2Last').value.trim(),
-               parent2Email: document.getElementById('parent2Email').value.trim(),
-               selectedPillars: getSelectedPillars(),
-               selectedBehaviors: getSelectedBehaviors(),
-               location: document.getElementById('location').value.trim(), // Reads from hidden input updated by buttons
-               comments: document.getElementById('comments').value.trim(),
-               ccPrincipal: document.getElementById('ccPrincipal').checked,
-               ccAssociatePrincipal: document.getElementById('ccAssociatePrincipal').checked
-           };
+      // Form Submit Handler
+      document.getElementById('behaviorForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+          document.getElementById('statusMessage').innerHTML = ''; // Clear status
+          const submitButton = document.getElementById('submitBtn');
+          submitButton.disabled = true; // Prevent double-clicks
+      
+          // --- Gather Form Data ---
+          const formData = {
+              behaviorType: document.getElementById('behaviorType').value,
+              studentFirst: document.getElementById('studentFirst').value.trim(),
+              studentLast: document.getElementById('studentLast').value.trim(),
+              studentEmail: document.getElementById('studentEmail').value.trim(),
+              teacherName: document.getElementById('teacherName').value.trim(),
+              parent1First: document.getElementById('parent1First').value.trim(),
+              parent1Last: document.getElementById('parent1Last').value.trim(),
+              parent1Email: document.getElementById('parent1Email').value.trim(),
+              parent2First: document.getElementById('parent2First').value.trim(),
+              parent2Last: document.getElementById('parent2Last').value.trim(),
+              parent2Email: document.getElementById('parent2Email').value.trim(),
+              selectedPillars: getSelectedPillars(),
+              selectedBehaviors: getSelectedBehaviors(),
+              location: document.getElementById('location').value.trim(), // Reads from hidden input updated by buttons
+              comments: document.getElementById('comments').value.trim(),
+              ccAdmins: document.getElementById('ccAdmins').checked
+          };
 
            // --- Client-Side Validation ---
            let errors = [];
@@ -1915,17 +1911,18 @@ function processWebAppForm(formData) {
     const comments = formData.comments || "";
     // --- END NEW ---
 
-    // Extract CC options
-    const ccPrincipal = formData.ccPrincipal === true || formData.ccPrincipal === "true";
-    const ccAssociatePrincipal = formData.ccAssociatePrincipal === true || formData.ccAssociatePrincipal === "true";
-
+    // Extract CC option
+    const ccAdmins = formData.ccAdmins === true || formData.ccAdmins === "true";
+    
     // Get teacher email information
     const teacherEmail = Session.getActiveUser().getEmail();
-
+    
     // Build CC list
     const ccList = [];
-    if (ccPrincipal && CONFIG.ADMIN_EMAILS.PRINCIPAL) ccList.push(CONFIG.ADMIN_EMAILS.PRINCIPAL);
-    if (ccAssociatePrincipal && CONFIG.ADMIN_EMAILS.ASSOCIATE_PRINCIPAL) ccList.push(CONFIG.ADMIN_EMAILS.ASSOCIATE_PRINCIPAL);
+    if (ccAdmins) {
+      if (CONFIG.ADMIN_EMAILS.PRINCIPAL) ccList.push(CONFIG.ADMIN_EMAILS.PRINCIPAL);
+      if (CONFIG.ADMIN_EMAILS.ASSOCIATE_PRINCIPAL) ccList.push(CONFIG.ADMIN_EMAILS.ASSOCIATE_PRINCIPAL);
+    }
 
 
     // --- Pass selectedPillars array to email functions ---
@@ -2008,8 +2005,7 @@ function saveFormToSpreadsheetV2(formData) {
       parent2First: 'P',
       parent2Last: 'Q',
       parent2Email: 'R',
-      ccPrincipal: 'S',
-      ccAssociatePrincipal: 'T'
+      ccAdmins: 'S'
       // Add more columns if needed
   };
   // --- END Column Mapping ---
@@ -2069,8 +2065,7 @@ function saveFormToSpreadsheetV2(formData) {
   setData('parent2First', formData.parent2First || "");
   setData('parent2Last', formData.parent2Last || "");
   setData('parent2Email', formData.parent2Email || "");
-  setData('ccPrincipal', formData.ccPrincipal === true || formData.ccPrincipal === "true" ? "Yes" : "No");
-  setData('ccAssociatePrincipal', formData.ccAssociatePrincipal === true || formData.ccAssociatePrincipal === "true" ? "Yes" : "No");
+  setData('ccAdmins', formData.ccAdmins === true || formData.ccAdmins === "true" ? "Yes" : "No");
 
   Logger.log("Appending row to sheet: " + JSON.stringify(rowData));
   try {
@@ -2241,19 +2236,6 @@ function updateBehaviorSystemMenu() {
     // Add other relevant menu items if needed (e.g., tests)
     .addToUi();
 }
-
-/**
- * Event handler for when the spreadsheet is opened
- */
-function onOpen() {
-  updateBehaviorSystemMenu();
-  // Removed the call to updateBehaviorSystemMenu from EmailSystem.txt if it existed there
-  // to avoid duplicate menus. Only call it once.
-}
-
-// NOTE: The onEdit and updateAllBehaviorFormRows functions from DirectoryInfo.txt are separate.
-// They handle edits *directly* in the sheet, while this file handles the web app interaction.
-// You might keep both if you want both methods of interaction.
 
 /**
  * This function fixes the syntax error in your webapp
