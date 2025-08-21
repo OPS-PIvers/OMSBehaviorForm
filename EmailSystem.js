@@ -1,287 +1,10 @@
-/**
- * Global configuration settings
- */
-const CONFIG = {
-  SCHOOL_NAME: "Orono Middle School", // Or your actual school name
-  EMAIL_SUBJECT_GOOD_NEWS: "Good News Moment - Demonstrating Character!", // Updated Subject
-  EMAIL_SUBJECT_STOP_THINK: "Stop & Think Moment - Opportunity for Growth", // Updated Subject
-  SHEET_NAMES: {
-    DIRECTORY: "Directory",        // Verify this sheet name
-    BEHAVIOR_FORM: "Behavior Form" // Verify this sheet name
-  },
-  ADMIN_EMAILS: {
-    PRINCIPAL: "kimberly.vaneyll@orono.k12.mn.us", // Replace with actual principal email
-    ASSOCIATE_PRINCIPAL: "sara.hunstiger@orono.k12.mn.us", // Replace with actual associate principal email
-    ACADEMIC_SUPPORT: "kelly.hubert@orono.k12.mn.us",
-    TECH_SUPPORT: "paul.ivers@orono.k12.mn.us" // Remove after confirming the other admins receive the emails.
-  },
-  SEND_EMAILS: false, // CHANGE THIS AT THE BEGINNING OF THE SCHOOL YEAR
-  SIMILARITY_THRESHOLD: 3,  // Max Levenshtein distance for suggestions
-  MAX_SUGGESTIONS: 5        // Max number of suggestions to show
-};
+
 
 const SESSION_CACHE = CacheService.getScriptCache();
 
 // --- NEW: Pillar Data ---
 // Replace the existing PILLARS_DATA constant in EmailSystem.txt with this updated version
-const PILLARS_DATA = [
-  {
-    name: "Trustworthiness",
-    color: "#00008B", // Dark Blue
-    iconSymbol: "✋",
-    description: "Building honesty, reliability, and integrity.", // Added brief description
-    positiveBehaviors: [
-      "telling the truth, even when difficult",
-      "completing work with academic honesty", // Slightly refined
-      "returning found items to rightful owners",
-      "following through on commitments and promises",
-      "avoiding the spread of rumors or gossip",
-      "being reliable and dependable in group settings",
-      "using digital resources ethically (e.g., citing sources, submitting ones' own original work)" // Added digital aspect
-    ],
-    positiveRecognitionExamples: [
-      "showed great integrity by being honest today.",
-      "demonstrated academic honesty on their work.",
-      "acted responsibly by returning a found item.",
-      "followed through reliably on a commitment.",
-      "chose not to participate in gossip.",
-      "was a trustworthy and dependable group member.",
-      "showed digital responsibility in their work."
-    ],
-    negativeBehaviors: [
-      "being dishonest or misleading others",
-      "copying work, cheating, or plagiarizing", // Refined
-      "taking items that belong to others",
-      "breaking promises or commitments",
-      "participating in gossip or spreading rumors",
-      "blaming others unfairly to avoid consequences",
-      "misrepresenting online sources or plagiarizing digital work" // Added digital aspect
-    ],
-    learningFocus: [
-      "developing honesty, even when it's challenging.",
-      "understanding and practicing academic integrity.",
-      "respecting others' property and belongings.",
-      "learning the importance of keeping one's word.",
-      "building skills to avoid participating in or spreading gossip.",
-      "developing reliability and accountability.",
-      "learning responsible digital research and citation skills."
-    ]
-  },
-  {
-    name: "Respect",
-    color: "#FFBF00", // Amber/Yellow
-    iconSymbol: "🤝",
-    description: "Treating others, property, and oneself with consideration.",
-    positiveBehaviors: [
-      "using polite and appropriate language with peers and adults", // Refined
-      "listening actively and waiting for one's turn to speak", // Refined
-      "handling personal and school property carefully", // Refined
-      "following rules and directions willingly",
-      "expressing disagreements calmly and respectfully",
-      "showing appreciation for diverse perspectives and backgrounds", // Refined
-      "engaging in respectful online communication" // Added digital aspect
-    ],
-    positiveRecognitionExamples: [
-      "communicated respectfully with others today.",
-      "listened attentively during discussions.",
-      "handled materials responsibly.",
-      "followed directions cooperatively.",
-      "expressed opinions respectfully.",
-      "showed appreciation for different viewpoints.",
-      "demonstrated respectful online behavior."
-    ],
-    negativeBehaviors: [
-      "interrupting or talking over others frequently",
-      "communicating with disrespectful, rude, or offensive language", // Refined
-      "showing disrespect through tone, gestures, or expressions",
-      "wrestling with other students or not keeping hands to self",
-      "ignoring or defying reasonable instructions",
-      "mocking, teasing, or putting others down",
-      "engaging in disrespectful or inappropriate online interactions" // Added digital aspect
-    ],
-    learningFocus: [
-      "practicing active listening and patience in conversations.",
-      "developing constructive communication and appropriate language.",
-      "learning to show respect through actions and body language.",
-      "understanding the importance of caring for property.",
-      "learning to follow directions and school expectations.",
-      "building empathy and respectful ways to interact.",
-      "developing positive digital communication habits."
-    ]
-  },
-  {
-    name: "Responsibility",
-    color: "#228B22", // Forest Green
-    iconSymbol: "⭐",
-    description: "Taking ownership of actions, duties, and learning.",
-    positiveBehaviors: [
-      "submitting assignments on time and completed thoughtfully", // Refined
-      "coming prepared for class with necessary materials",
-      "cleaning up one's own workspace and shared areas", // Refined
-      "acknowledging mistakes and learning from them",
-      "taking good care of borrowed or shared items",
-      "completing assigned tasks and chores reliably",
-      "persisting through challenges and seeking help appropriately", // Refined
-      "managing time effectively for assignments and projects" // Added
-    ],
-    positiveRecognitionExamples: [
-      "submitted thoughtful work on time.",
-      "came to class well-prepared today.",
-      "helped keep our space tidy.",
-      "took responsibility for a mistake and learned from it.",
-      "cared for shared materials responsibly.",
-      "completed assigned tasks reliably.",
-      "showed perseverance on a challenging task.",
-      "managed time effectively on the recent assignment."
-    ],
-    negativeBehaviors: [
-      "frequently submitting late or incomplete work",
-      "being off-task or distracting to others",
-      "leaving personal or shared areas messy or disorganized",
-      "making excuses or blaming others for mistakes",
-      "losing or damaging items carelessly",
-      "being unprepared for class activities or discussions",
-      "giving up easily when tasks become challenging",
-      "struggling to manage deadlines for assignments/projects" // Added
-    ],
-    learningFocus: [
-      "developing organizational skills for assignments.",
-      "building habits for preparedness and organization.",
-      "learning to take responsibility for personal and shared spaces.",
-      "developing accountability and a growth mindset.",
-      "practicing care for personal and shared belongings.",
-      "strengthening preparedness for learning.",
-      "building resilience and problem-solving skills.",
-      "improving time management and planning skills."
-    ]
-  },
-  {
-    name: "Fairness",
-    color: "#FF8C00", // Dark Orange
-    iconSymbol: "⚖️",
-    description: "Playing by the rules, taking turns, and being open-minded.",
-    positiveBehaviors: [
-      "taking turns and sharing opportunities equitably", // Refined
-      "playing games and participating according to rules",
-      "listening openly to different viewpoints before judging", // Refined
-      "actively including others in activities and groups",
-      "sharing resources appropriately and considering others' needs",
-      "treating everyone impartially and justly" // Refined
-    ],
-    positiveRecognitionExamples: [
-      "shared materials/opportunities fairly with others.",
-      "played fairly and followed the rules.",
-      "listened open-mindedly to different ideas.",
-      "made an effort to include others today.",
-      "shared resources thoughtfully.",
-      "treated peers in a fair and just manner."
-    ],
-    negativeBehaviors: [
-      "cutting ahead, skipping turns, or dominating activities",
-      "cheating or disregarding rules in games/activities",
-      "ignoring different perspectives or being closed-minded",
-      "deliberately excluding peers from activities or groups",
-      "using more resources than necessary or permitted",
-      "blaming others unjustly or showing favoritism" // Refined
-    ],
-    learningFocus: [
-      "practicing sharing and taking turns.",
-      "understanding the importance of rules and fair play.",
-      "developing open-mindedness and considering diverse views.",
-      "building inclusive behaviors and empathy.",
-      "learning to share resources equitably.",
-      "developing impartiality and avoiding bias."
-    ]
-  },
-  {
-    name: "Caring",
-    color: "#DC143C", // Crimson Red
-    iconSymbol: "❤️",
-    description: "Showing kindness, compassion, and empathy towards others.",
-    positiveBehaviors: [
-      "offering help or support to peers in need",
-      "comforting or showing empathy towards others experiencing difficulty",
-      "communicating with kind words and giving genuine compliments",
-      "welcoming new students or including peers who seem left out", // Refined
-      "expressing gratitude and appreciation towards others",
-      "sharing items willingly and thoughtfully",
-      "standing up for peers respectfully when witnessing unkindness" // Refined
-    ],
-    positiveRecognitionExamples: [
-      "showed kindness by helping a peer.",
-      "was compassionate and supportive to someone today.",
-      "communicated with kind words that made a positive impact.",
-      "made an effort to welcome or include someone.",
-      "expressed gratitude thoughtfully.",
-      "shared generously with others.",
-      "acted as a supportive friend/classmate."
-    ],
-    negativeBehaviors: [
-      "being unkind, teasing, or making fun of others",
-      "ignoring peers who clearly need assistance or support",
-      "engaging in mean-spirited gossip or spreading rumors",
-      "laughing at the mistakes or struggles of others",
-      "acting selfishly or disregarding the feelings/needs of others",
-      "excluding others purposefully from groups or activities",
-      "being insensitive to the feelings of others" // Added
-    ],
-    learningFocus: [
-      "cultivating empathy and kindness in interactions.",
-      "developing awareness of others' needs and offering support.",
-      "practicing positive communication and avoiding gossip.",
-      "building sensitivity to how words/actions affect others.",
-      "learning to consider others' perspectives and needs.",
-      "developing inclusive social skills.",
-      "increasing awareness and sensitivity to others' feelings."
-    ]
-  },
-  {
-    name: "Citizenship",
-    color: "#4B0082", // Indigo/Purple
-    iconSymbol: "🏠",
-    description: "Contributing positively to the school and community.",
-    positiveBehaviors: [
-      "following school and classroom rules consistently",
-      "working cooperatively and respectfully with peers in groups",
-      "helping keep school spaces clean, orderly, and safe", // Refined
-      "showing respect for school staff, volunteers, and visitors", // Refined
-      "participating positively in school events and activities",
-      "contributing to a safe and welcoming school environment",
-      "reporting safety concerns or rule violations responsibly",
-      "demonstrating appropriate and ethical use of school technology" // Added digital citizenship
-    ],
-    positiveRecognitionExamples: [
-      "followed classroom/school rules reliably.",
-      "collaborated effectively and respectfully in a group.",
-      "helped maintain a positive school environment.",
-      "showed respect for adults in the school community.",
-      "participated positively in a school activity.",
-      "contributed to a welcoming atmosphere.",
-      "acted responsibly regarding a safety/rule concern.",
-      "demonstrated appropriate and ethical use of school technology."
-    ],
-    negativeBehaviors: [
-      "breaking or consistently ignoring established rules",
-      "littering or failing to clean up after oneself",
-      "damaging school property intentionally or carelessly",
-      "refusing to cooperate or being disruptive in groups",
-      "disrupting the learning environment for others",
-      "ignoring or violating safety procedures",
-      "avoiding participation or contributing negatively to activities",
-      "misusing school technology or accessing inappropriate content" // Added digital citizenship
-    ],
-    learningFocus: [
-      "understanding and respecting community rules.",
-      "developing responsibility for shared spaces.",
-      "learning to respect property and resources.",
-      "building collaboration and teamwork skills.",
-      "understanding one's impact on the learning environment.",
-      "developing awareness of safety procedures.",
-      "learning the value of positive participation.",
-      "practicing responsible and ethical technology use."
-    ]
-  }
-];
+
 
 
 /**
@@ -324,6 +47,7 @@ function capitalizeProperName(name) {
  * @return {string[]} - Array of pillar names
  */
 function determinePillarsFromBehaviors(behaviorType, behaviors) {
+  loadPillarsData();
   if (!behaviors) return [];
   
   // Convert to array if it's a string
@@ -401,6 +125,8 @@ function getFormValue(formValues, fieldName, defaultValue = "") {
  * @param {Object} e The event object from the form submission
  */
 function onFormSubmit(e) {
+  loadConstants();
+  loadPillarsData();
   try {
     // Log the full structure for debugging
     logFormStructure(e);
@@ -533,6 +259,8 @@ function getTeacherName(email) {
  * Updated to include parent names, CC list, and selected pillars.
  */
 function sendStopAndThinkEmail(studentFirst, studentLast, parent1Email, parent2Email, location, behaviors, comments, teacherEmail, teacherName, parent1First, parent2First, ccList, selectedPillars) {
+  loadConstants();
+  loadPillarsData();
   const subject = CONFIG.EMAIL_SUBJECT_STOP_THINK;
 
   // Create the email body - passing pillars and parent names
@@ -547,6 +275,8 @@ function sendStopAndThinkEmail(studentFirst, studentLast, parent1Email, parent2E
  * Updated to include parent names, CC list, and selected pillars.
  */
 function sendGoodNewsEmail(studentFirst, studentLast, parent1Email, parent2Email, location, behaviors, comments, teacherEmail, teacherName, parent1First, parent2First, ccList, selectedPillars) {
+  loadConstants();
+  loadPillarsData();
   const subject = CONFIG.EMAIL_SUBJECT_GOOD_NEWS;
 
   // Create the email body - passing pillars and parent names
@@ -567,6 +297,8 @@ function buildSafeHTML(parts) {
 
 function createSimplifiedEmailBody(type, studentFirst, studentLast, parent1First, parent2First,
                                 location, behaviors, comments, teacherName, selectedPillars = []) {
+  loadConstants();
+  loadPillarsData();
   // Sanitize inputs
   const safeStudentFirst = studentFirst ? studentFirst.replace(/[<>]/g, '') : '';
   const safeLocation = location ? location.replace(/[<>]/g, '') : '';
@@ -742,6 +474,7 @@ function createStopThinkEmailBody(studentFirst, studentLast, location, behaviors
  * @param {string[]} [ccList=[]] An array of email addresses to CC.
  */
 function sendEmailToParents(subject, body, parent1Email, parent2Email, teacherEmail, teacherName, ccList = []) {
+  loadConstants();
   const recipients = [];
   if (parent1Email && parent1Email.trim() !== "" && parent1Email.includes('@')) {
     recipients.push(parent1Email.trim());
@@ -811,7 +544,9 @@ function onOpen() {
         .addSeparator()
     .addItem('Parse Execution Logs from Column A', 'parseAllLogsInColumnA')
     .addSeparator()
-    .addSubMenu(ui.createMenu('Admin Daily Summary')
+    .addSubMenu(ui.createMenu('Admin')
+      .addItem('Setup Constants Sheet', 'setupConstantsSheet')
+      .addItem('Setup Pillars Sheets', 'setupPillarsSheets')
       .addItem('Setup Daily Summary Trigger (3PM)', 'checkAndCreateDailySummaryTrigger')
       .addItem('Remove Daily Summary Trigger', 'removeDailySummaryTrigger')
       .addItem('Send Test Summary Email Now', 'sendTestDailySummaryEmail')
@@ -823,6 +558,7 @@ function onOpen() {
  * Useful function to debug form field names
  */
 function logFormFieldNames() {
+  loadConstants();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(CONFIG.SHEET_NAMES.BEHAVIOR_FORM);
   
@@ -846,6 +582,8 @@ function logFormFieldNames() {
  * Test Functions
  */
 function testGoodNewsEmail() {
+  loadConstants();
+  loadPillarsData();
   sendGoodNewsEmail(
     "Sarah", 
     "Johnson", 
@@ -860,6 +598,8 @@ function testGoodNewsEmail() {
 }
 
 function testStopThinkEmail() {
+  loadConstants();
+  loadPillarsData();
   sendStopAndThinkEmail(
     "John", 
     "Smith", 
@@ -878,6 +618,7 @@ function testStopThinkEmail() {
  * Use this to catch up if the trigger wasn't working
  */
 function processAllFormResponses() {
+  loadConstants();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(CONFIG.SHEET_NAMES.BEHAVIOR_FORM);
   

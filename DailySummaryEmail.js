@@ -8,6 +8,7 @@
  * Gathers all submissions for the day and sends a summary email
  */
 function sendDailySummaryEmail() {
+  loadConstants();
   try {
     Logger.log("Running daily summary email function");
     
@@ -52,6 +53,7 @@ function sendDailySummaryEmail() {
  * Sends a summary email when there are no submissions for the day
  */
 function sendEmptyDailySummary() {
+  loadConstants();
   const today = new Date();
   const formattedDate = Utilities.formatDate(today, Session.getScriptTimeZone(), "MMMM d, yyyy");
   
@@ -89,6 +91,7 @@ function sendEmptyDailySummary() {
  * @return {Array} Array of submission objects
  */
 function getTodaysSubmissions() {
+  loadConstants();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(CONFIG.SHEET_NAMES.BEHAVIOR_FORM);
   
@@ -173,6 +176,7 @@ function getTodaysSubmissions() {
  * @return {Object} Object with good news and stop & think counts
  */
 function getAllSubmissions() {
+  loadConstants();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(CONFIG.SHEET_NAMES.BEHAVIOR_FORM);
   
@@ -280,6 +284,7 @@ function calculateStatistics(submissions) {
  * @return {string} HTML email content
  */
 function createSummaryEmailHTML(submissions, stats) {
+  loadPillarsData();
   const today = new Date();
   const formattedDate = Utilities.formatDate(today, Session.getScriptTimeZone(), "MMMM d, yyyy");
   
@@ -671,6 +676,7 @@ function escapeHTML(text) {
  * @param {string} [subject] Optional custom subject line
  */
 function sendEmailToAdmins(htmlBody, subject) {
+  loadConstants();
   // Default subject if not provided
   if (!subject) {
     const today = new Date();
@@ -739,6 +745,7 @@ function removeDailySummaryTrigger() {
  * @return {Object} Status object with information about trigger
  */
 function checkAndCreateDailySummaryTrigger() {
+  loadConstants();
   const triggers = ScriptApp.getProjectTriggers();
   let summaryTriggerExists = false;
   
@@ -768,6 +775,7 @@ function checkAndCreateDailySummaryTrigger() {
  * Run this function to manually send a test summary email
  */
 function sendTestDailySummaryEmail() {
+  loadConstants();
   try {
     // Call the daily summary function but with a specific message
     sendDailySummaryEmail();

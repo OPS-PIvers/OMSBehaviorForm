@@ -55,6 +55,8 @@ function doGet(e) {
  * Returns an improved student behavior form with Pillar integration.
  */
 function createImprovedBehaviorForm() {
+  // Load Pillar data from sheets
+  loadPillarsData();
   // Pass Pillar data to the client-side JavaScript
   const pillarsJson = JSON.stringify(PILLARS_DATA);
 
@@ -1856,6 +1858,8 @@ function createImprovedBehaviorForm() {
  * Fixed to properly store parent names in cache
  */
 function processWebAppForm(formData) {
+  loadConstants();
+  loadPillarsData();
   try {
     Logger.log("Received form data: " + JSON.stringify(formData));
 
@@ -1976,6 +1980,7 @@ function processWebAppForm(formData) {
  * @param {Object} formData - The form data submitted from the web app.
  */
 function saveFormToSpreadsheetV2(formData) {
+  loadConstants();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(CONFIG.SHEET_NAMES.BEHAVIOR_FORM);
 
@@ -2079,6 +2084,7 @@ function saveFormToSpreadsheetV2(formData) {
 
 function lookupStudent(firstName, lastName) {
   try {
+    loadConstants(); // Load constants to ensure CONFIG is populated
     firstName = firstName.trim();
     lastName = lastName.trim();
     Logger.log(`Looking up student: "${firstName}" "${lastName}"`);

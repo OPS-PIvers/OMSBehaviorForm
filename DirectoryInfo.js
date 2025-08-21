@@ -5,12 +5,13 @@
  * @param {Object} e The event object from the edit trigger
  */
 function onEdit(e) {
+  loadConstants();
   // Get the active sheet and the edited range
   const sheet = e.source.getActiveSheet();
   const range = e.range;
   
   // Check if the edit occurred in the "Behavior Form" sheet
-  if (sheet.getName() !== "Behavior Form") return;
+  if (sheet.getName() !== CONFIG.SHEET_NAMES.BEHAVIOR_FORM) return;
   
   // Check if the edit was in columns C or D (Student First or Last)
   const col = range.getColumn();
@@ -43,7 +44,7 @@ function onEdit(e) {
  */
 function lookupAndUpdateStudentInfo(sheet, row, firstName, lastName) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const directorySheet = ss.getSheetByName("Directory");
+  const directorySheet = ss.getSheetByName(CONFIG.SHEET_NAMES.DIRECTORY);
   
   // Get all data from Directory sheet
   const directoryData = directorySheet.getDataRange().getValues();
@@ -100,8 +101,9 @@ function lookupAndUpdateStudentInfo(sheet, row, firstName, lastName) {
  * This can be run to ensure all existing rows are populated correctly.
  */
 function updateAllBehaviorFormRows() {
+  loadConstants();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const behaviorSheet = ss.getSheetByName("Behavior Form");
+  const behaviorSheet = ss.getSheetByName(CONFIG.SHEET_NAMES.BEHAVIOR_FORM);
   
   // Get all data from Behavior Form
   const behaviorData = behaviorSheet.getDataRange().getValues();
