@@ -688,6 +688,8 @@ function sendEmailToAdmins(htmlBody, subject) {
   const recipients = [];
   if (CONFIG.ADMIN_EMAILS.PRINCIPAL) recipients.push(CONFIG.ADMIN_EMAILS.PRINCIPAL);
   if (CONFIG.ADMIN_EMAILS.ASSOCIATE_PRINCIPAL) recipients.push(CONFIG.ADMIN_EMAILS.ASSOCIATE_PRINCIPAL);
+  if (CONFIG.ADMIN_EMAILS.ACADEMIC_SUPPORT) recipients.push(CONFIG.ADMIN_EMAILS.ACADEMIC_SUPPORT);
+  if (CONFIG.ADMIN_EMAILS.TECH_SUPPORT) recipients.push(CONFIG.ADMIN_EMAILS.TECH_SUPPORT);
   
   // Check if we have recipients
   if (recipients.length === 0) {

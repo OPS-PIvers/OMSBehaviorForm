@@ -41,9 +41,15 @@ function calculateLevenshteinDistance(a, b) {
  * and send emails directly from their accounts.
  */
 function doGet(e) {
+  // Load constants to get school name
+  loadConstants();
+  
+  // Create dynamic title using school name
+  const dynamicTitle = `${CONFIG.SCHOOL_NAME || 'School'} Character Form`;
+  
   // Log parameters if needed: Logger.log(JSON.stringify(e));
   const htmlOutput = HtmlService.createHtmlOutput(createImprovedBehaviorForm()) // Use the new function
-    .setTitle('Student Behavior Form - Pillars of Character')
+    .setTitle(dynamicTitle)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     // Allow embedding if necessary, otherwise remove setXFrameOptionsMode
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -55,8 +61,13 @@ function doGet(e) {
  * Returns an improved student behavior form with Pillar integration.
  */
 function createImprovedBehaviorForm() {
-  // Load Pillar data from sheets
+  // Load constants and pillar data from sheets
+  loadConstants();
   loadPillarsData();
+  
+  // Create dynamic title using school name
+  const dynamicTitle = `${CONFIG.SCHOOL_NAME || 'School'} Character Form`;
+  
   // Pass Pillar data to the client-side JavaScript
   const pillarsJson = JSON.stringify(PILLARS_DATA);
 
@@ -66,7 +77,7 @@ function createImprovedBehaviorForm() {
 <head>
   <base target="_top">
   <meta charset="utf-8">
-  <title>Student Behavior Form - Pillars of Character</title>
+  <title>${dynamicTitle}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     /* --- Basic Styles --- */
@@ -1848,6 +1859,13 @@ function createImprovedBehaviorForm() {
       commentsTextarea.selectionEnd = commentsTextarea.value.length;
   }
 </script>
+
+<!-- Developer Credit Footer -->
+<div style="margin-top: 40px; padding: 15px; border-top: 1px solid #e9ecef; text-align: center; font-size: 12px; color: #6c757d; background-color: #f8f9fa;">
+  <p style="margin: 0;">This web application was developed by <strong>Orono Public Schools (ISD #278)</strong></p>
+  <p style="margin: 5px 0 0 0;">Freely distributed to support character education in schools everywhere</p>
+</div>
+
 </body>
 </html>
   `;

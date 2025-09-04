@@ -89,13 +89,49 @@ function determinePillarsFromBehaviors(behaviorType, behaviors) {
 /**
  * Creates a trigger to run when a form is submitted
  */
-function createFormSubmitTrigger() {
+/**
+ * Creates an onEdit trigger for DirectoryInfo auto-population functionality
+ * This enables automatic student lookup when names are entered in the Behavior Form
+ */
+function createOnEditTrigger() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  ScriptApp.newTrigger('onFormSubmit')
+  
+  // Check if onEdit trigger already exists to avoid duplicates
+  const triggers = ScriptApp.getProjectTriggers();
+  for (let i = 0; i < triggers.length; i++) {
+    const trigger = triggers[i];
+    if (trigger.getHandlerFunction() === 'onEdit') {
+      Logger.log('onEdit trigger already exists');
+      return;
+    }
+  }
+  
+  // Create the onEdit trigger
+  ScriptApp.newTrigger('onEdit')
     .forSpreadsheet(ss)
-    .onFormSubmit()
+    .onEdit()
     .create();
-  Logger.log('Form submit trigger created successfully');
+  Logger.log('onEdit trigger created successfully for DirectoryInfo auto-population');
+}
+
+/**
+ * Removes the onEdit trigger if it exists
+ */
+function removeOnEditTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  
+  for (let i = 0; i < triggers.length; i++) {
+    const trigger = triggers[i];
+    if (trigger.getHandlerFunction() === 'onEdit') {
+      ScriptApp.deleteTrigger(trigger);
+      Logger.log(`Removed onEdit trigger with ID: ${trigger.getUniqueId()}`);
+      SpreadsheetApp.getActiveSpreadsheet().toast('onEdit trigger removed successfully', 'Trigger Removed', 3);
+      return;
+    }
+  }
+  
+  Logger.log('No onEdit trigger found to remove');
+  SpreadsheetApp.getActiveSpreadsheet().toast('No onEdit trigger found to remove', 'Trigger Status', 3);
 }
 
 /**
@@ -534,14 +570,21 @@ function sendEmailToParents(subject, body, parent1Email, parent2Email, teacherEm
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('Behavior System')
-    .addItem('Create Form Submit Trigger', 'createFormSubmitTrigger')
+    .addItem('🎯 NEW SCHOOL SETUP WIZARD', 'runNewSchoolSetupWizard')
+    .addSeparator()
+    .addItem('📖 Complete Deployment Guide (Beginners)', 'showBeginnerDeploymentGuide')
+    .addItem('🚀 Quick Deployment Steps (Advanced)', 'showQuickDeploymentInstructions')
+    .addItem('🔍 Verify System Setup', 'verifySystemSetup')
+    .addItem('🔧 Deployment Troubleshooting', 'showDeploymentTroubleshooting')
+    .addSeparator()
+    .addItem('Create Edit Trigger (Student Auto-Lookup)', 'createOnEditTrigger')
     .addSeparator()
     .addItem('Test Good News Email', 'testGoodNewsEmail')
     .addItem('Test Stop and Think Email', 'testStopThinkEmail')
     .addSeparator()
     .addItem('Process All Form Responses', 'processAllFormResponses')
     .addItem('Log Form Field Names', 'logFormFieldNames')
-        .addSeparator()
+    .addSeparator()
     .addItem('Parse Execution Logs from Column A', 'parseAllLogsInColumnA')
     .addSeparator()
     .addSubMenu(ui.createMenu('Admin')
@@ -549,6 +592,9 @@ function onOpen() {
       .addItem('Setup Pillars Sheets', 'setupPillarsSheets')
       .addItem('Setup Daily Summary Trigger (3PM)', 'checkAndCreateDailySummaryTrigger')
       .addItem('Remove Daily Summary Trigger', 'removeDailySummaryTrigger')
+      .addSeparator()
+      .addItem('Create Edit Trigger (Student Auto-Lookup)', 'createOnEditTrigger')
+      .addItem('Remove Edit Trigger', 'removeOnEditTrigger')
       .addItem('Send Test Summary Email Now', 'sendTestDailySummaryEmail')
     )
     .addToUi();
