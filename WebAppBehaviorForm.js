@@ -2028,7 +2028,8 @@ function saveFormToSpreadsheetV2(formData) {
       parent2First: 'P',
       parent2Last: 'Q',
       parent2Email: 'R',
-      ccAdmins: 'S'
+      ccAdmins: 'S',
+      gradeLevel: 'T'
       // Add more columns if needed
   };
   // --- END Column Mapping ---
@@ -2089,6 +2090,37 @@ function saveFormToSpreadsheetV2(formData) {
   setData('parent2Last', formData.parent2Last || "");
   setData('parent2Email', formData.parent2Email || "");
   setData('ccAdmins', formData.ccAdmins === true || formData.ccAdmins === "true" ? "Yes" : "No");
+
+  // Look up and set grade level from Directory sheet
+  const studentFirstName = formData.studentFirst || "";
+  const studentLastName = formData.studentLast || "";
+  if (studentFirstName && studentLastName) {
+    try {
+      const directorySheet = ss.getSheetByName(CONFIG.SHEET_NAMES.DIRECTORY);
+      if (directorySheet) {
+        const directoryData = directorySheet.getDataRange().getValues();
+        // Skip header row and search for matching student
+        for (let i = 1; i < directoryData.length; i++) {
+          const currFirstName = directoryData[i][0]; // Column A: Student First
+          const currLastName = directoryData[i][1];  // Column B: Student Last
+          
+          // Case-insensitive comparison of first and last names
+          if (currFirstName && currLastName && 
+              currFirstName.toLowerCase() === studentFirstName.toLowerCase() && 
+              currLastName.toLowerCase() === studentLastName.toLowerCase()) {
+            const gradeLevel = directoryData[i][2]; // Column C: Grade Level
+            if (gradeLevel !== null && gradeLevel !== undefined && gradeLevel !== "") {
+              setData('gradeLevel', gradeLevel);
+              Logger.log(`Found grade level ${gradeLevel} for student: ${studentFirstName} ${studentLastName}`);
+            }
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      Logger.log("Error looking up grade level: " + error.toString());
+    }
+  }
 
   Logger.log("Appending row to sheet: " + JSON.stringify(rowData));
   try {
