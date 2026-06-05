@@ -40,7 +40,9 @@ jobs:
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
         # Write via env var (not an inline echo) so the token never appears in logs.
-        run: printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+        # Strip a leading UTF-8 BOM if present so clasp can JSON.parse the file
+        # (some shells prepend one when the secret is set).
+        run: printf '%s' "${CLASPRC_JSON#$'\xEF\xBB\xBF'}" > "$HOME/.clasprc.json"
 
       - name: Push code to Apps Script
         run: clasp push --force
