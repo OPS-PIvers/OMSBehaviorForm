@@ -1,0 +1,52 @@
+name: Deploy to Apps Script
+
+# Pushes the repo to the bound Apps Script project and updates the pinned
+# production deployment on every push to main, keeping the teacher-facing
+# /exec URL stable.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never let two pushes deploy at once; queue them instead of racing.
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # Pinned production deployment (the /exec URL shared with teachers).
+  DEPLOYMENT_ID: AKfycbzbrsyV9Q5gLkZnUTa290cc7FV7IKlfeIyNb1zeqZ49MzGTqOGKIdXvLW2q04K2kEGZ
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install clasp
+        run: npm install -g @google/clasp@3.3.0
+
+      - name: Restore clasp credentials
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        # Write via env var (not an inline echo) so the token never appears in logs.
+        run: printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+
+      - name: Push code to Apps Script
+        run: clasp push --force
+
+      - name: Update production deployment
+        run: |
+          clasp create-deployment \
+            --deploymentId "$DEPLOYMENT_ID" \
+            --description "CI deploy main@${GITHUB_SHA::7}"
