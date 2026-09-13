@@ -661,6 +661,16 @@ function createImprovedBehaviorForm() {
         name: "Being loud or screaming",
         pillar: "Citizenship",
         behavior: "disrupting the learning environment for others"
+      },
+      {
+        name: "Device Infraction (Phone)",
+        pillar: "Citizenship",
+        behavior: "device infraction - phone use"
+      },
+      {
+        name: "Device Infraction (Computer)",
+        pillar: "Citizenship",
+        behavior: "device infraction - computer use at inappropriate time"
       }
     ]
   };
