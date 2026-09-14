@@ -79,119 +79,124 @@ function createImprovedBehaviorForm() {
   <meta charset="utf-8">
   <title>${dynamicTitle}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
   <style>
-    /* --- Basic Styles --- */
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
-    .container { max-width: 900px; margin: 20px auto; background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
-    h1 { color: #0056b3; margin-bottom: 10px; text-align: center; font-size: 24px; }
-    h2 { margin-top: 0; font-size: 18px; color: #343a40; border-bottom: 2px solid #e9ecef; padding-bottom: 8px; margin-bottom: 20px; }
-    label { font-weight: 600; display: block; margin-bottom: 6px; color: #495057; font-size: 14px; }
-    input[type="text"], input[type="email"], select, textarea {
-      width: 100%; padding: 10px 12px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s;
+    /* --- OPS brand tokens (see ops-brand-guidelines DESIGN.md) --- */
+    :root {
+      --ops-blue-50: #f4f6fa;  --ops-blue-100: #eaecf5; --ops-blue-200: #c0c7e0; --ops-blue-400: #6d7cb5;
+      --ops-blue-600: #4356a9; --ops-blue-700: #2d3f89; --ops-blue-800: #253473; --ops-blue-900: #1d2a5d;
+      --ops-red-50: #f5e3e3;   --ops-red-100: #e5c7c7;  --ops-red-300: #d78c8d;
+      --ops-red-600: #c13435;  --ops-red-700: #ad2122;  --ops-red-800: #941c1d;  --ops-red-900: #7a1718;
+      --ops-gray-100: #f3f3f3; --ops-gray-200: #e0e0e0; --ops-gray-300: #cccccc; --ops-gray-500: #999999;
+      --ops-gray-600: #808080; --ops-gray-700: #666666; --ops-gray-900: #333333;
+      --ops-focus-ring: rgba(45, 63, 137, 0.1);
+      --ops-shadow-subtle: 0 1px 2px rgba(29, 42, 93, 0.08);
+      --ops-font-heading: "Lexend", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --ops-font-body: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
     }
-    input[type="text"]:focus, input[type="email"]:focus, textarea:focus { border-color: #80bdff; outline: 0; box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); }
-    textarea { resize: vertical; min-height: 80px; }
-    button { transition: background-color 0.2s ease-in-out; }
 
-    /* --- Section Headers with Collapsible Functionality --- */
-    h2 { 
-      margin-top: 0; 
-      font-size: 18px; 
-      color: #343a40; 
-      border-bottom: 2px solid #e9ecef; 
-      padding-bottom: 8px; 
-      margin-bottom: 20px;
-      cursor: pointer;
-      user-select: none;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    /* --- Base --- */
+    body { font-family: var(--ops-font-body); background-color: var(--ops-blue-50); margin: 0; padding: 24px 16px; color: var(--ops-gray-900); font-size: 16px; line-height: 1.5; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { font-family: var(--ops-font-heading); color: var(--ops-blue-900); text-align: center; font-size: 28px; font-weight: 700; line-height: 1.2; margin: 8px 0 32px; }
+    h1::after { content: ""; display: block; width: 48px; height: 4px; margin: 12px auto 0; border-radius: 9999px; background-color: var(--ops-red-700); }
+    label { font-weight: 500; display: block; margin-bottom: 6px; color: var(--ops-gray-900); font-size: 14px; letter-spacing: 0.01em; }
+    input[type="text"], input[type="email"], select, textarea {
+      width: 100%; padding: 10px 12px; border: 1.5px solid var(--ops-gray-300); border-radius: 8px; font-family: var(--ops-font-body); font-size: 16px; color: var(--ops-gray-900); background-color: #ffffff; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s;
     }
-    h2::after {
-      content: "▼";
-      font-size: 14px;
-      transition: transform 0.3s;
-      color: #6c757d;
-    }
-    h2.collapsed::after {
-      transform: rotate(-90deg);
-    }
+    input[type="text"]:hover, input[type="email"]:hover, textarea:hover { border-color: var(--ops-gray-500); }
+    input[type="text"]:focus, input[type="email"]:focus, textarea:focus { border-color: var(--ops-blue-600); outline: 0; box-shadow: 0 0 0 3px var(--ops-focus-ring); }
+    input[readonly] { background-color: var(--ops-gray-100); color: var(--ops-gray-700); }
+    input[readonly]:hover { border-color: var(--ops-gray-300); }
+    textarea { resize: vertical; min-height: 96px; }
+    button { transition: background-color 0.2s ease-in-out; }
 
     /* --- Collapsible Sections --- */
     .form-section {
-      border: 1px solid #e0e0e0; 
-      border-radius: 8px; 
-      padding: 25px; 
-      margin-bottom: 30px; 
-      background: #ffffff; 
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      transition: max-height 0.3s ease-out, padding 0.3s ease-out, opacity 0.3s ease-out;
-      overflow: hidden;
+      background: #ffffff; border: 1px solid var(--ops-gray-200); border-radius: 12px;
+      padding: 24px; margin-bottom: 24px; box-shadow: var(--ops-shadow-subtle); overflow: hidden;
     }
-    .form-section .section-content {
-      transition: opacity 0.3s, transform 0.3s;
-      transform-origin: top;
+    .form-section h2 {
+      font-family: var(--ops-font-heading); font-size: 18px; font-weight: 600; line-height: 1.35; color: var(--ops-blue-900);
+      margin: 0 0 20px; padding-bottom: 10px; border-bottom: 1px solid var(--ops-gray-200);
+      cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center;
     }
-    .form-section.collapsed .section-content {
-      display: none;
-      opacity: 0;
-      transform: scaleY(0);
-    }
-    .form-section.collapsed {
-      padding-top: 15px;
-      padding-bottom: 15px;
-    }
+    .form-section h2::after { content: "▼"; font-size: 12px; color: var(--ops-gray-600); transition: transform 0.3s; }
+    .form-section h2.collapsed::after { transform: rotate(-90deg); }
+    .form-section .section-content { transition: opacity 0.3s, transform 0.3s; transform-origin: top; }
+    .form-section.collapsed .section-content { display: none; opacity: 0; transform: scaleY(0); }
+    .form-section.collapsed { padding-top: 16px; padding-bottom: 16px; }
+    .form-section.collapsed h2 { margin-bottom: 0; padding-bottom: 0; border-bottom-color: transparent; }
 
-    /* --- Layout & Sections --- */
-    .form-section { border: 1px solid #e0e0e0; border-radius: 8px; padding: 25px; margin-bottom: 30px; background: #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .form-row { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; align-items: flex-end; }
+    /* --- Layout --- */
+    .form-row { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; align-items: flex-end; }
     .form-group { flex: 1 1 30%; min-width: 200px; }
-    .form-group-full { flex: 1 1 100%; margin-bottom: 20px; /* Add margin for spacing */ }
+    .form-group-full { flex: 1 1 100%; margin-bottom: 20px; }
 
     /* --- Buttons --- */
     .primary-button {
-      background-color: #007bff; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 600; white-space: nowrap;
+      background-color: var(--ops-blue-700); color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;
+      font-family: var(--ops-font-heading); font-size: 15px; font-weight: 500; letter-spacing: 0.01em; white-space: nowrap;
     }
-    .primary-button:hover { background-color: #0056b3; }
-    .primary-button:disabled { background-color: #adb5bd; cursor: not-allowed; }
-    .lookup-button { margin-left: 10px; height: 40px; align-self: flex-end; margin-bottom: 1px; }
+    .primary-button:hover { background-color: var(--ops-blue-800); }
+    .primary-button:active { background-color: var(--ops-blue-900); }
+    .primary-button:disabled { background-color: var(--ops-gray-300); color: var(--ops-gray-600); cursor: not-allowed; }
+    .submit-button { background-color: var(--ops-red-700); padding: 12px 32px; font-size: 16px; }
+    .submit-button:hover { background-color: var(--ops-red-800); }
+    .submit-button:active { background-color: var(--ops-red-900); }
+    .lookup-button { align-self: flex-end; min-height: 45px; }
 
-    /* --- General Toggle Buttons (like Good News/StopThink & Location) --- */
+    /* --- Toggle Buttons (behavior type & location) --- */
     .toggle-button-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
     .toggle-button {
-      padding: 10px 16px; border: 1px solid #ccc; border-radius: 6px; background-color: #f8f9fa; cursor: pointer; font-weight: 500; transition: all 0.2s; text-align: center; flex-grow: 1;
-      color: #495057; /* Default text color */
+      padding: 10px 16px; border: 1.5px solid var(--ops-gray-300); border-radius: 8px; background-color: #ffffff; color: var(--ops-gray-900);
+      cursor: pointer; font-weight: 500; font-size: 15px; transition: background-color 0.2s, border-color 0.2s, color 0.2s; text-align: center; flex-grow: 1;
     }
-    .toggle-button.active { background-color: #007bff; color: #fff; border-color: #007bff; font-weight: 600; }
+    .toggle-button:hover { background-color: var(--ops-blue-50); border-color: var(--ops-gray-500); }
+    .toggle-button.active { background-color: var(--ops-blue-700); color: #ffffff; border-color: var(--ops-blue-700); }
 
-    /* --- Pillar Buttons --- */
-    /* Container: Force single row, allow scroll if needed */
+    /* Behavior-type row: three equal buttons on one line; labels wrap inside the button */
+    #section-behavior-type .toggle-button-group { flex-wrap: nowrap; }
+    #section-behavior-type .toggle-button { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.3; position: relative; overflow: hidden; padding: 14px 16px; }
+    #section-behavior-type .toggle-button span { position: relative; z-index: 1; }
+    #section-behavior-type .type-title { font-family: var(--ops-font-heading); font-weight: 600; font-size: 16px; }
+    #section-behavior-type .type-subtitle { font-style: italic; font-weight: 400; font-size: 14px; }
+    /* Oversized, tilted outline icon bleeding off the left edge behind the label */
+    #section-behavior-type .type-icon {
+      position: absolute; left: -14px; top: 50%; width: 78px; height: 78px;
+      transform: translateY(-50%) rotate(-18deg);
+      fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      opacity: 0.18; pointer-events: none;
+    }
+    #section-behavior-type .toggle-button.active .type-icon { color: #ffffff; opacity: 0.25; }
+    /* Good News = brand blue, Stop & Think = brand red */
+    #section-behavior-type [data-type="goodnews"] .type-icon { color: var(--ops-blue-700); }
+    #section-behavior-type [data-type="goodnews"]:hover { background-color: var(--ops-blue-50); border-color: var(--ops-blue-400); }
+    #section-behavior-type [data-type="goodnews"].active { background-color: var(--ops-blue-700); border-color: var(--ops-blue-700); color: #ffffff; }
+    #section-behavior-type [data-type="stopthink"] .type-icon { color: var(--ops-red-700); }
+    #section-behavior-type [data-type="stopthink"]:hover { background-color: var(--ops-red-50); border-color: var(--ops-red-300); }
+    #section-behavior-type [data-type="stopthink"].active { background-color: var(--ops-red-700); border-color: var(--ops-red-700); color: #ffffff; }
+    #section-behavior-type [data-type].active .type-icon { color: #ffffff; }
+    /* Referral sits in the behavior-type row but is a link out, not a toggle */
+    a.referral-link { text-decoration: none; }
+    #section-behavior-type a.referral-link .type-icon { color: var(--ops-gray-700); }
+    #section-behavior-type a.referral-link:hover { background-color: var(--ops-gray-100); border-color: var(--ops-gray-500); }
+    @media (max-width: 600px) {
+      #section-behavior-type .toggle-button-group { flex-wrap: wrap; }
+      #section-behavior-type .toggle-button { flex-basis: 100%; }
+    }
+
+    /* --- Pillar Buttons (Character Counts! pillar colors are intentional, not brand) --- */
     #pillarButtonsContainer {
-      display: flex;          /* Use flexbox for layout */
-      flex-direction: row;    /* Align items horizontally */
-      flex-wrap: nowrap;      /* Prevent wrapping to next line */
-      gap: 10px;              /* Space between buttons */
-      margin-top: 10px;
-      padding-bottom: 10px;   /* Space for scrollbar if needed */
-      overflow-x: auto;       /* Enable horizontal scroll on overflow */
-      -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-      width: 100%;            /* Take full container width */
-      box-sizing: border-box; /* Include padding in width calculation */
+      display: flex; flex-direction: row; flex-wrap: nowrap; gap: 10px; margin-top: 10px; padding-bottom: 10px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; box-sizing: border-box;
     }
     .pillar-button {
-      flex: 1 1 0;           /* Equal width, with ability to grow/shrink */
-      padding: 8px 15px;     /* Vertical and horizontal padding */
-      border-radius: 6px;    /* Rounded corners */
-      cursor: pointer;       /* Hand cursor on hover */
-      font-weight: 600;      /* Bold text */
-      transition: all 0.2s ease-in-out; /* Smooth transition for hover/active */
-      text-align: center;    /* Center text */
-      font-size: 14px;       /* Text size */
-      border: 2px solid;     /* Border width */
-      background-color: #fff;/* Default background: white */
-      white-space: nowrap;   /* Keep text on one line */
-      min-width: 0;          /* Allow button to shrink below content size if needed */
-      box-sizing: border-box; /* Include padding in width calculation */
+      flex: 1 1 0; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-family: var(--ops-font-heading); font-weight: 600; font-size: 14px;
+      transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out; text-align: center;
+      border: 2px solid; background-color: #ffffff; white-space: nowrap; min-width: 0; box-sizing: border-box;
     }
 
     /* --- Explicit INACTIVE States (Outline + Text Color) --- */
@@ -210,195 +215,86 @@ function createImprovedBehaviorForm() {
     .pillar-caring.active          { background-color: #dd2c3e; border-color: #dd2c3e; color: #ffffff; }
     .pillar-citizenship.active     { background-color: #542f90; border-color: #542f90; color: #ffffff; }
 
-
     /* --- Behavior Buttons --- */
-    #behaviorButtonsContainer { margin-top: 15px; }
-    .behavior-button-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }    
-    /* Default Behavior Button Style */
+    #behaviorButtonsContainer { margin-top: 16px; }
+    .behavior-button-group { display: flex; flex-direction: column; gap: 8px; }
     .behavior-button {
-      padding: 8px 12px; 
-      border-radius: 4px; 
-      cursor: pointer; 
-      font-weight: 500;
-      transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-      text-align: left; 
-      font-size: 14px;
-      border: 1px solid; 
-      background-color: #f8f9fa;
+      padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 14px; line-height: 1.4;
+      transition: background-color 0.2s, color 0.2s, border-color 0.2s; text-align: left; border: 1.5px solid; background-color: #ffffff;
     }
 
     /* --- Behavior Columns --- */
-    .behavior-columns-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 15px;
-        width: 100%;
-    }
+    .behavior-columns-container { display: flex; flex-wrap: wrap; gap: 16px; width: 100%; }
     .behavior-column {
-        flex: 1 1 200px;
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
-        overflow: hidden;
-        background-color: #fff;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      flex: 1 1 200px; display: flex; flex-direction: column; border: 1px solid var(--ops-gray-200); border-radius: 8px;
+      overflow: hidden; background-color: #ffffff; box-shadow: var(--ops-shadow-subtle);
     }
-    .behavior-column-header {
-        padding: 8px 12px;
-        font-weight: bold;
-        text-align: center;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    .behavior-column .behavior-button-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 12px;
-        max-height: 300px;
-        overflow-y: auto;
-    }
-    .quick-actions-section {
-      margin-top: 15px;
-      margin-bottom: 5px;
-    }
-    .quick-actions-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #495057;
-    }
-    .quick-actions-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
+    .behavior-column-header { padding: 8px 12px; font-family: var(--ops-font-heading); font-weight: 600; font-size: 14px; text-align: center; }
+    .behavior-column .behavior-button-group { display: flex; flex-direction: column; gap: 8px; padding: 12px; max-height: 300px; overflow-y: auto; }
+
+    /* --- Quick Actions --- */
+    .quick-actions-section { margin-top: 16px; margin-bottom: 4px; }
+    .quick-actions-title { font-family: var(--ops-font-heading); font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--ops-gray-900); }
+    #goodNewsQuickActions .quick-actions-title { color: var(--ops-blue-700); }
+    #stopThinkQuickActions .quick-actions-title { color: var(--ops-red-700); }
+    .quick-actions-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
     .quick-action-button {
-      background-color: #f1f9ff;
-      border: 1px solid #b8daff;
-      color: #0056b3;
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: normal;
-      text-align: left;
+      background-color: var(--ops-blue-50); border: 1.5px solid var(--ops-blue-200); color: var(--ops-blue-700);
+      padding: 6px 14px; border-radius: 9999px; font-size: 14px; font-weight: 500; cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s, color 0.2s; white-space: normal; text-align: left;
     }
-    .quick-action-button:hover {
-      background-color: #d7ecff;
-      border-color: #80bdff;
-    }
-    .quick-action-button.stop-think {
-      background-color: #fff3cd;
-      border-color: #ffeeba;
-      color: #856404;
-    }
-    .quick-action-button.stop-think:hover {
-      background-color: #ffeeba;
-      border-color: #ffdf7e;
-    }
-    /* Update these styles to use solid colors for selected state */
-    .quick-action-button.selected {
-      background-color: #007bff;
-      border-color: #007bff;
-      color: #ffffff;
-      font-weight: 600; /* Make text slightly bolder */
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Add subtle shadow for depth */
-    }
-    .quick-action-button.stop-think.selected {
-      background-color: #f0ad4e;
-      border-color: #f0ad4e;
-      color: #ffffff;
-      font-weight: 600;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
+    .quick-action-button:hover { background-color: var(--ops-blue-100); border-color: var(--ops-blue-400); }
+    .quick-action-button.selected { background-color: var(--ops-blue-700); border-color: var(--ops-blue-700); color: #ffffff; }
+    .quick-action-button.stop-think { background-color: var(--ops-red-50); border-color: var(--ops-red-100); color: var(--ops-red-900); }
+    .quick-action-button.stop-think:hover { background-color: var(--ops-red-100); border-color: var(--ops-red-300); }
+    .quick-action-button.stop-think.selected { background-color: var(--ops-red-700); border-color: var(--ops-red-700); color: #ffffff; }
 
     /* --- Other UI Elements --- */
     .other-input { display: none; margin-top: 10px; }
-    #loadingOverlay { /* Keep existing styles */ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-    .loading-spinner { /* Keep existing styles */ border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1.5s linear infinite; }
+    #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(29, 42, 93, 0.55); z-index: 1000; justify-content: center; align-items: center; }
+    .loading-spinner { border: 6px solid var(--ops-blue-100); border-top: 6px solid var(--ops-red-700); border-radius: 50%; width: 50px; height: 50px; animation: spin 1.2s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .alert { padding: 15px; margin-bottom: 20px; border-radius: 5px; font-weight: 500; border: 1px solid transparent; }
-    .alert-success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
-    .alert-danger { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-    .alert-warning { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
-    .suggestion-link { color: #0056b3; text-decoration: underline; cursor: pointer; font-weight: bold; }
-    .note-box { background-color: #e8f4fd; border-left: 4px solid #1a73e8; padding: 10px 15px; margin: 15px 0; font-size: 13px; border-radius: 4px; color: #004085;}
-    .checkbox-group { margin-top: 10px; }
-    .checkbox-label { display: inline-flex; align-items: center; margin-right: 20px; font-weight: normal; cursor: pointer; }
-    .checkbox-label input { margin-right: 6px; cursor: pointer; }
-    .admin-cc-options { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 15px; border: 1px solid #dee2e6; }
+    /* Status alerts follow the brand callout pattern: tinted fill + 3px left accent */
+    .alert { padding: 14px 16px; margin-bottom: 20px; border-radius: 8px; font-size: 15px; font-weight: 500; border-left: 3px solid transparent; }
+    .alert-success { background-color: var(--ops-blue-100); color: var(--ops-blue-900); border-left-color: var(--ops-blue-700); }
+    .alert-danger { background-color: var(--ops-red-100); color: var(--ops-red-900); border-left-color: var(--ops-red-700); }
+    .alert-warning { background-color: var(--ops-red-50); color: var(--ops-red-900); border-left-color: var(--ops-red-600); }
+    .suggestion-link { color: var(--ops-blue-700); text-decoration: underline; cursor: pointer; font-weight: 700; }
+    .note-box { background-color: var(--ops-blue-100); border-left: 3px solid var(--ops-blue-700); padding: 12px 16px; margin: 16px 0 0; font-size: 14px; line-height: 1.5; border-radius: 8px; color: var(--ops-gray-900); }
+    .checkbox-group { margin-top: 4px; }
+    .checkbox-label { display: inline-flex; align-items: center; margin-right: 20px; font-weight: 400; font-size: 15px; cursor: pointer; }
+    .checkbox-label input { margin-right: 8px; cursor: pointer; width: 18px; height: 18px; accent-color: var(--ops-blue-700); }
+    .admin-cc-options { background-color: var(--ops-gray-100); padding: 16px; border-radius: 8px; margin-top: 0; }
 
     /* --- Comment Suggestions --- */
-    .suggestions-container {
-      margin-top: 10px;
-      margin-bottom: 10px;
-    }
-    .suggestions-label {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #495057;
-    }
-    .suggestion-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      max-height: 150px;
-      overflow-y: auto;
-      padding-right: 5px;
-    }
+    .suggestions-container { margin-top: 12px; margin-bottom: 4px; }
+    .suggestions-label { font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--ops-gray-900); }
+    .suggestion-chips { display: flex; flex-wrap: wrap; gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 5px; }
     .suggestion-chip {
-      background-color: #f1f9ff;
-      border: 1px solid #b8daff;
-      color: #0056b3;
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: normal;
-      text-align: left;
-      max-width: 100%;
+      background-color: var(--ops-blue-50); border: 1.5px solid var(--ops-blue-200); color: var(--ops-blue-700);
+      padding: 6px 14px; border-radius: 9999px; font-size: 14px; cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s; white-space: normal; text-align: left; max-width: 100%;
     }
-    .suggestion-chip:hover {
-      background-color: #d7ecff;
-      border-color: #80bdff;
-    }
-    .suggestion-chip.combined {
-      background-color: #e7f5eb;
-      border-color: #b7dfbf;
-      color: #28a745;
-    }
-    .suggestion-chip.combined:hover {
-      background-color: #d4edda;
-      border-color: #9ad0a6;
-    }
-    .suggestions-placeholder {
-      color: #6c757d;
-      font-style: italic;
-      padding: 6px 0;
-    }
+    .suggestion-chip:hover { background-color: var(--ops-blue-100); border-color: var(--ops-blue-400); }
+    .suggestion-chip.combined { background-color: var(--ops-blue-100); border-color: var(--ops-blue-600); color: var(--ops-blue-900); font-weight: 500; }
+    .suggestion-chip.combined:hover { background-color: var(--ops-blue-200); }
+    .suggestions-placeholder { color: var(--ops-gray-700); font-style: italic; font-size: 14px; padding: 6px 0; }
+    .behavior-placeholder { color: var(--ops-gray-700); font-style: italic; }
+
+    /* --- Footer --- */
+    .app-footer { max-width: 900px; margin: 16px auto 0; padding: 16px; border-top: 1px solid var(--ops-gray-200); text-align: center; font-size: 12px; line-height: 1.4; color: var(--ops-gray-700); }
+    .app-footer p { margin: 0; }
+    .app-footer p + p { margin-top: 4px; }
 
     @media (max-width: 768px) {
-        .behavior-columns-container {
-            flex-direction: column;
-        }
-        .behavior-column {
-            max-width: 100%;
-        }
+      .behavior-columns-container { flex-direction: column; }
+      .behavior-column { max-width: 100%; }
     }
     @media (max-width: 480px) {
-       h1 { font-size: 20px; }
-       h2 { font-size: 16px; }
-       /* Pillar buttons will scroll horizontally */
-       .behavior-button-group { grid-template-columns: 1fr; } /* Single column */
+      h1 { font-size: 22px; }
+      .form-section { padding: 16px; }
+      .form-section h2 { font-size: 16px; }
+      .behavior-button-group { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -414,11 +310,21 @@ function createImprovedBehaviorForm() {
         <h2>Select Behavior Context</h2>
         <div class="section-content">
           <div class="toggle-button-group">
-            <div class="toggle-button active" data-type="goodnews">✅ Good News / Positive Behavior</div>
-            <div class="toggle-button" data-type="stopthink">⚠️ Stop & Think / Needs Improvement</div>
+            <div class="toggle-button active" data-type="goodnews">
+              <svg class="type-icon" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span class="type-title">Good News</span><span class="type-subtitle">Positive Behavior</span>
+            </div>
+            <div class="toggle-button" data-type="stopthink">
+              <svg class="type-icon" viewBox="0 0 24 24" aria-hidden="true"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span class="type-title">Stop & Think</span><span class="type-subtitle">Needs Improvement</span>
+            </div>
+            <a class="toggle-button referral-link" href="https://docs.google.com/forms/d/e/1FAIpQLSe0fTfm1keilgKwM5QrVHx6zIySUGsu_mBfyN5kLi9qSLJbMg/viewform" target="_blank" rel="noopener noreferrer">
+              <svg class="type-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/></svg>
+              <span class="type-title">Behavior Incident</span><span class="type-title">Referral</span>
+            </a>
           </div>
           <input type="hidden" id="behaviorType" name="behaviorType" value="goodnews">
-          <div class="note-box">Select whether you are documenting positive behavior (Good News) or behavior that needs improvement (Stop & Think). This determines which behaviors are shown later.</div>
+          <div class="note-box">Select whether you are documenting positive behavior (Good News) or behavior that needs improvement (Stop & Think). This determines which behaviors are shown later. Behavior Incident Referral opens a separate Google Form in a new tab.</div>
         </div>
       </div>
 
@@ -435,7 +341,7 @@ function createImprovedBehaviorForm() {
               <label for="studentLast">Last Name*</label>
               <input type="text" id="studentLast" name="studentLast" required>
             </div>
-            <button type="button" class="primary-button lookup-button" id="lookupButton">🔍 Look Up</button>
+            <button type="button" class="primary-button lookup-button" id="lookupButton">Look Up</button>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -475,7 +381,7 @@ function createImprovedBehaviorForm() {
           
           <!-- Good News Quick Actions -->
           <div id="goodNewsQuickActions" class="quick-actions-section">
-            <div class="quick-actions-title">✅ Good News Quick Actions:</div>
+            <div class="quick-actions-title">Good News Quick Actions</div>
             <div class="quick-actions-container">
               <!-- Quick action buttons will be generated here by JavaScript -->
             </div>
@@ -483,7 +389,7 @@ function createImprovedBehaviorForm() {
           
           <!-- Stop and Think Quick Actions -->
           <div id="stopThinkQuickActions" class="quick-actions-section">
-            <div class="quick-actions-title">⚠️ Stop & Think Quick Actions:</div>
+            <div class="quick-actions-title">Stop & Think Quick Actions</div>
             <div class="quick-actions-container">
               <!-- Quick action buttons will be generated here by JavaScript -->
             </div>
@@ -507,7 +413,7 @@ function createImprovedBehaviorForm() {
         <h2>Select Specific Observed Behavior(s)*</h2>
         <div class="section-content">
           <div id="behaviorButtonsContainer">
-            <p style="color: #6c757d;"><i>Select a pillar above to see relevant behaviors.</i></p>
+            <p class="behavior-placeholder">Select a pillar above to see relevant behaviors.</p>
             <!-- Behavior buttons will be generated here by JavaScript -->
           </div>
         </div>
@@ -563,7 +469,7 @@ function createImprovedBehaviorForm() {
 
       <!-- Submit Button -->
       <div class="form-row" style="justify-content: center; margin-top: 30px;">
-        <button type="submit" id="submitBtn" class="primary-button" style="padding: 12px 30px; font-size: 16px;">✅ Submit & Send Email</button>
+        <button type="submit" id="submitBtn" class="primary-button submit-button">Submit & Send Email</button>
       </div>
 
     </form>
@@ -584,7 +490,7 @@ function createImprovedBehaviorForm() {
     "Fairness":        { bg: "#ef8834", text: "#ffffff" },
     "Caring":          { bg: "#dd2c3e", text: "#ffffff" },
     "Citizenship":     { bg: "#542f90", text: "#ffffff" },
-    "default":         { bg: "#007bff", text: "#ffffff" } // Fallback blue
+    "default":         { bg: "#2d3f89", text: "#ffffff" } // Fallback: OPS brand blue
   };
   const DEFAULT_BEHAVIOR_BUTTON_STYLE = { // Store default styles
       background: '#f1f1f1', // Matches CSS .behavior-button default
@@ -674,6 +580,30 @@ function createImprovedBehaviorForm() {
       }
     ]
   };
+
+  // Stop & Think behaviors whose comment suggestion is a fixed sentence instead of
+  // the "{Student} can work on {learningFocus}." pattern. Keys are matched against
+  // the selected behavior text the same way selectBehaviorByText does (exact or includes).
+  const STOPTHINK_SUGGESTION_OVERRIDES = [
+    {
+      behavior: "device infraction - phone use",
+      sentence: function(name) { return name + " was using a phone during the school day."; }
+    },
+    {
+      behavior: "device infraction - computer use at inappropriate time",
+      sentence: function(name) { return name + " was using the computer without permission."; }
+    }
+  ];
+
+  function getStopThinkSuggestionOverride(behavior, studentName) {
+    for (let i = 0; i < STOPTHINK_SUGGESTION_OVERRIDES.length; i++) {
+      const override = STOPTHINK_SUGGESTION_OVERRIDES[i];
+      if (behavior === override.behavior || behavior.includes(override.behavior)) {
+        return override.sentence(studentName);
+      }
+    }
+    return null;
+  }
 
   // --- Helper Functions ---
   function showStatus(message, type) {
@@ -843,7 +773,7 @@ function createImprovedBehaviorForm() {
               if (behaviorPillar === pillarName) {
                   btn.classList.remove('active');
                   const pStyle = PILLAR_COLORS[behaviorPillar] || PILLAR_COLORS.default;
-                  btn.style.backgroundColor = '#f8f9fa';
+                  btn.style.backgroundColor = '#ffffff';
                   btn.style.color = pStyle.bg;
                   btn.style.borderColor = pStyle.bg;
               }
@@ -874,7 +804,7 @@ function createImprovedBehaviorForm() {
       behaviorContainer.innerHTML = ''; // Clear previous buttons/messages
 
       if (selectedPillarNames.length === 0) {
-          behaviorContainer.innerHTML = '<p style="color: #6c757d; font-style: italic;">Select a pillar above to see relevant behaviors.</p>';
+          behaviorContainer.innerHTML = '<p class="behavior-placeholder">Select a pillar above to see relevant behaviors.</p>';
           return;
       }
 
@@ -935,7 +865,7 @@ function createImprovedBehaviorForm() {
               // Apply pillar color to text and border when not selected
               btn.style.color = pillarStyle.bg;
               btn.style.borderColor = pillarStyle.bg;
-              btn.style.backgroundColor = '#f8f9fa';
+              btn.style.backgroundColor = '#ffffff';
               
               // Check if this behavior was previously selected
               if (currentlySelectedBehaviors.includes(behavior)) {
@@ -966,7 +896,7 @@ function createImprovedBehaviorForm() {
           const pillarStyle = PILLAR_COLORS[pillarName] || PILLAR_COLORS.default;
           
           btn.classList.remove('active');
-          btn.style.backgroundColor = '#f8f9fa';
+          btn.style.backgroundColor = '#ffffff';
           btn.style.color = pillarStyle.bg; // Use pillar color for text
           btn.style.borderColor = pillarStyle.bg;
       });
@@ -988,7 +918,7 @@ function createImprovedBehaviorForm() {
           btn.style.borderColor = pillarStyle.bg;
       } else { // Now inactive
           // Reset to pillar color text
-          btn.style.backgroundColor = '#f8f9fa';
+          btn.style.backgroundColor = '#ffffff';
           btn.style.color = pillarStyle.bg;
           btn.style.borderColor = pillarStyle.bg;
       }
@@ -1116,7 +1046,7 @@ function createImprovedBehaviorForm() {
     if (selectedQuickActions.length === 0) {
       clearPillarSelections();
       document.getElementById('behaviorButtonsContainer').innerHTML = 
-        '<p style="color: #6c757d; font-style: italic;">Select a pillar above to see relevant behaviors.</p>';
+        '<p class="behavior-placeholder">Select a pillar above to see relevant behaviors.</p>';
       return;
     }
     
@@ -1243,7 +1173,7 @@ function createImprovedBehaviorForm() {
     resetQuickActionSelections();
     
     // Clear behavior selections and container message
-    document.getElementById('behaviorButtonsContainer').innerHTML = '<p style="color: #6c757d; font-style: italic;">Select a pillar above to see relevant behaviors.</p>';
+    document.getElementById('behaviorButtonsContainer').innerHTML = '<p class="behavior-placeholder">Select a pillar above to see relevant behaviors.</p>';
     
     // Clear comment suggestions
     document.getElementById('commentSuggestions').innerHTML = '<div class="suggestions-placeholder">Select pillars and behaviors to see personalized suggestions.</div>';
@@ -1612,7 +1542,24 @@ function createImprovedBehaviorForm() {
                   : pillar.negativeBehaviors;
                   
               if (!behaviorArray || !behaviorArray.includes(behavior)) return;
-              
+
+              // Fixed-sentence behaviors skip the learning-focus lookup entirely
+              if (currentBehaviorType === 'stopthink') {
+                  const overrideSentence = getStopThinkSuggestionOverride(behavior, studentFirst);
+                  if (overrideSentence) {
+                      if (!suggestionTexts.has(overrideSentence)) {
+                          suggestionTexts.add(overrideSentence);
+                          suggestions.push({
+                              text: overrideSentence,
+                              pillar: pillar,
+                              behavior: behavior,
+                              isFullSentence: true
+                          });
+                      }
+                      return;
+                  }
+              }
+
               // Find index of this behavior in the pillar's behavior array
               const behaviorIndex = behaviorArray.indexOf(behavior);
               
@@ -1663,7 +1610,9 @@ function createImprovedBehaviorForm() {
           suggestions.forEach(suggestion => {
               // For Stop & Think, format individual suggestions with "can work on" pattern
               if (currentBehaviorType === 'stopthink') {
-                  const displayText = studentFirst + " can work on " + suggestion.text + ".";
+                  const displayText = suggestion.isFullSentence
+                      ? suggestion.text
+                      : studentFirst + " can work on " + suggestion.text + ".";
                   const chip = createSuggestionChip(displayText, suggestion.pillar, false);
                   suggestionsContainer.appendChild(chip);
               } else {
@@ -1741,9 +1690,20 @@ function createImprovedBehaviorForm() {
    */
   function generateStopThinkCombinedSuggestion(suggestions, studentName) {
       if (!suggestions || suggestions.length === 0) return null;
-      
+
+      // Fixed sentences (e.g. device infractions) lead as-is; the rest are joined
+      // into a single "can work on" sentence after them.
+      const fullSentences = suggestions
+          .filter(function(s) { return s.isFullSentence; })
+          .map(function(s) { return s.text; });
+      const focusSuggestions = suggestions.filter(function(s) { return !s.isFullSentence; });
+
+      if (focusSuggestions.length === 0) {
+          return fullSentences.join(' ');
+      }
+
       // Extract clean suggestion texts (learning focus items)
-      const focusItems = suggestions.map(function(s) {
+      const focusItems = focusSuggestions.map(function(s) {
           // Extract clean suggestion text without period at end
           let text = s.text.trim();
           if (text.endsWith('.')) {
@@ -1758,19 +1718,22 @@ function createImprovedBehaviorForm() {
       const prefix = studentName + " can work on ";
       
       // Format differently based on number of suggestions
+      let focusSentence;
       if (focusItems.length === 1) {
-          // Single suggestion (shouldn't happen in combined, but just in case)
-          return prefix + focusItems[0] + ".";
-      } 
+          // Single suggestion: "{Student} can work on {focus1}."
+          focusSentence = prefix + focusItems[0] + ".";
+      }
       else if (focusItems.length === 2) {
           // Two suggestions: "{Student} can work on {focus1} and {focus2}."
-          return prefix + focusItems[0] + " and " + focusItems[1] + ".";
-      } 
+          focusSentence = prefix + focusItems[0] + " and " + focusItems[1] + ".";
+      }
       else {
           // Three or more: "{Student} can work on {focus1}, {focus2}, ... and {focusN}."
           const lastItem = focusItems.pop();
-          return prefix + focusItems.join(', ') + " and " + lastItem + ".";
+          focusSentence = prefix + focusItems.join(', ') + " and " + lastItem + ".";
       }
+
+      return fullSentences.concat([focusSentence]).join(' ');
   }
 
   function generateGoodNewsCombinedSuggestion(suggestions, studentName) {
@@ -1871,9 +1834,9 @@ function createImprovedBehaviorForm() {
 </script>
 
 <!-- Developer Credit Footer -->
-<div style="margin-top: 40px; padding: 15px; border-top: 1px solid #e9ecef; text-align: center; font-size: 12px; color: #6c757d; background-color: #f8f9fa;">
-  <p style="margin: 0;">This web application was developed by <strong>Orono Public Schools (ISD #278)</strong></p>
-  <p style="margin: 5px 0 0 0;">Freely distributed to support character education in schools everywhere</p>
+<div class="app-footer">
+  <p>This web application was developed by <strong>Orono Public Schools (ISD #278)</strong></p>
+  <p>Freely distributed to support character education in schools everywhere</p>
 </div>
 
 </body>
