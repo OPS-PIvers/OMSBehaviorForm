@@ -585,12 +585,8 @@ function createDeviceDigestHTML(sections, settings, sheetUrl, isTest) {
           (${step}, ${step * 2}, ${step * 3}, and so on). Counts start over at zero each quarter.
         </td></tr>
         ${sectionsHTML}
-        <tr><td style="padding:28px 28px 8px;">
+        <tr><td align="center" style="padding:28px 28px 28px;text-align:center;">
           <a href="${escapeHTML(sheetUrl)}" style="display:inline-block;padding:12px 20px;border-radius:8px;background-color:#2d3f89;color:#ffffff;text-decoration:none;font-size:15px;font-weight:500;${bodyFont}">Open the behavior spreadsheet</a>
-        </td></tr>
-        <tr><td style="padding:16px 28px 24px;${bodyFont}font-size:12px;line-height:1.5;color:#808080;">
-          Counts come from device infractions logged on the Behavior Form. Quarter dates and the alert step are set in the
-          spreadsheet under Behavior System &gt; Device Infractions &gt; Quarter Dates &amp; Alert Settings.
         </td></tr>
       </table>
     </td></tr>
