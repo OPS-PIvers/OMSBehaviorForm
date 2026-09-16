@@ -1944,6 +1944,19 @@ function processWebAppForm(formData) {
     saveFormToSpreadsheetV2(formData); // Use a revised save function
     // --- END NEW ---
 
+    // Keep Directory N-R current. A failed recount must not fail the submission;
+    // the 3 PM digest recounts again before it checks thresholds.
+    const hasDeviceInfraction = selectedBehaviors.some(function(behavior) {
+      return String(behavior).toLowerCase().indexOf(DEVICE_INFRACTION_TEXT) !== -1;
+    });
+    if (hasDeviceInfraction) {
+      try {
+        recountDeviceInfractions();
+      } catch (recountError) {
+        Logger.log("Device infraction recount failed: " + recountError.toString());
+      }
+    }
+
 
     // Clear the cache after sending/saving
     SESSION_CACHE.remove('currentFormData');

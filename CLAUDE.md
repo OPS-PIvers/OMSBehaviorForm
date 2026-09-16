@@ -11,7 +11,7 @@ A Google Apps Script project bound to a Google Sheet. Teachers use a web app to 
 - There is no build step, package.json, linter, or automated test suite. The `.js` files are pushed to Apps Script as-is (V8 runtime).
 - **Pushing to `main` deploys to production.** `.github/workflows/deploy.yml` runs `clasp push --force` and then updates the pinned deployment (`DEPLOYMENT_ID`), so the teacher-facing `/exec` URL stays the same. Anything merged to `main` reaches teachers right away.
 - To push by hand: `clasp push` (clasp 3.x, `scriptId` in `.clasp.json`). To pull edits made in the online editor: `clasp pull`.
-- Testing is manual. Run functions from the Apps Script editor or from the sheet's `Behavior System` menu: `testGoodNewsEmail`, `testStopThinkEmail`, `sendTestDailySummaryEmail`, `verifySystemSetup`, `testGradeLevelLookup`, `troubleshootEmailSystem`. If the Constants sheet has `SEND_EMAILS` set to `false`, `sendEmailToParents` only logs what it would send.
+- Testing is manual. Run functions from the Apps Script editor or from the sheet's `Behavior System` menu: `testGoodNewsEmail`, `testStopThinkEmail`, `sendTestDailySummaryEmail`, `verifySystemSetup`, `testGradeLevelLookup`, `troubleshootEmailSystem`, and `sendTestDeviceInfractionDigest` (Device Infractions > Send Test Alert to Me, which emails only the person clicking and writes nothing to the log). If the Constants sheet has `SEND_EMAILS` set to `false`, `sendEmailToParents` only logs what it would send.
 
 ## Architecture
 
@@ -33,12 +33,13 @@ Apps Script loads every `.js` file into one shared global scope. There are no im
 ### Hardcoded sheet column layouts (keep them in sync)
 Several files assume fixed column positions instead of looking up headers:
 - **Behavior Form** sheet: A timestamp, B teacher email, C/D student first/last, E behavior type, F location, G pillars, H behaviors, I comments, L student email, M–O parent 1, P–R parent 2, S ccAdmins, T grade level. These positions are used by `saveFormToSpreadsheetV2` (`columnMap`), `DirectoryInfo.js` (`onEdit` watches C/D and writes L–R and T), `DailySummaryEmail.js` (`getTodaysSubmissions` indices), and `logParser.js` headers.
-- **Directory** sheet: A student first, B last, C grade, D student email, E–G parent 1 first/last/email, H–J parent 2. Read by `lookupStudent`, `saveFormToSpreadsheetV2`, and `lookupAndUpdateStudentInfo`.
+- **Directory** sheet: A student first, B last, C grade, D student email, E–G parent 1 first/last/email, H–J parent 2, K–M 1st-hour class/teacher, N device infraction total, O–R Q1–Q4 device infraction counts. Read by `lookupStudent`, `saveFormToSpreadsheetV2`, and `lookupAndUpdateStudentInfo`. N–R and their headers are written by `recountDeviceInfractions` (`DeviceInfractions.js`), not formulas; any formula put there is overwritten on the next recount.
 
 Changing either layout means updating every one of those places.
 
 ### Other entry points
 - `EmailSystem.js`: `onOpen` builds the `Behavior System` menu, and every admin/setup/test action is wired from it. It also has the email body builders (`createSimplifiedEmailBody` and the Good News / Stop & Think wrappers). `onFormSubmit` is the older Google Forms path, keyed on form question titles in `e.namedValues`. The web app is the current submission path.
 - `DailySummaryEmail.js`: a time-based trigger at 3 PM, created from the menu (`checkAndCreateDailySummaryTrigger`), emails `CONFIG.ADMIN_EMAILS`.
+- `DeviceInfractions.js` + `DeviceInfractionSettings.html`: counts Behavior Form rows whose column H contains "device infraction" (one per submission) and writes them to Directory N–R. Quarter dates, the alert step, and recipients are `DEVICE_ALERTS.*` keys on the Constants sheet, set from the Behavior System > Device Infractions settings dialog. It recounts after any web app submission that includes a device infraction and again before the daily 3 PM digest (`sendDeviceInfractionDigest`). The digest emails students whose current-quarter count reached a new multiple of the step and records each alert on the **Device Alert Log** sheet so no level is reported twice.
 - `DirectoryInfo.js`: `onEdit` auto-fills parent info when a student name is typed straight into the Behavior Form sheet. It can also be installed as a trigger through `createOnEditTrigger`. It also sorts submissions into per-grade-level sheets.
 - `logParser.js`: a recovery tool. It rebuilds rows from pasted `"Appending row to sheet: [...]"` execution-log lines.

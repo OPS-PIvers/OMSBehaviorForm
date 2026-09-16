@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ops-blue-50: #f4f6fa; --ops-blue-100: #eaecf5; --ops-blue-600: #4356a9;
+      --ops-blue-700: #2d3f89; --ops-blue-800: #253473; --ops-blue-900: #1d2a5d;
+      --ops-red-50: #f5e3e3; --ops-red-800: #941c1d;
+      --ops-gray-300: #cccccc; --ops-gray-500: #999999; --ops-gray-700: #666666; --ops-gray-900: #333333;
+      --ops-focus-ring: rgba(45, 63, 137, 0.15);
+      --ops-font-heading: "Lexend", Arial, sans-serif;
+      --ops-font-body: "Roboto", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 4px 4px 0; font-family: var(--ops-font-body); font-size: 14px; color: var(--ops-gray-900); background: #ffffff; }
+    h2 { margin: 0 0 4px; font-family: var(--ops-font-heading); font-size: 15px; font-weight: 600; color: var(--ops-blue-900); }
+    .hint { margin: 0 0 12px; font-size: 13px; line-height: 1.45; color: var(--ops-gray-700); }
+    section { margin-bottom: 20px; }
+
+    .quarters { display: grid; grid-template-columns: 32px 1fr 1fr; gap: 8px 10px; align-items: center; }
+    .col-label { font-size: 12px; font-weight: 500; color: var(--ops-gray-700); }
+    .q-name { font-family: var(--ops-font-heading); font-weight: 600; color: var(--ops-blue-900); }
+
+    input { width: 100%; padding: 8px 10px; font: inherit; color: var(--ops-gray-900); border: 1.5px solid var(--ops-gray-300); border-radius: 8px; background: #ffffff; }
+    input:hover { border-color: var(--ops-gray-500); }
+    input:focus { outline: 0; border-color: var(--ops-blue-600); box-shadow: 0 0 0 3px var(--ops-focus-ring); }
+    .step-row { display: flex; align-items: center; gap: 10px; }
+    .step-row input { width: 72px; text-align: center; }
+    label { display: block; margin-bottom: 6px; font-weight: 500; }
+
+    .status { display: none; margin-bottom: 14px; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; white-space: pre-line; }
+    .status.error { display: block; background: var(--ops-red-50); color: var(--ops-red-800); }
+    .status.success { display: block; background: var(--ops-blue-100); color: var(--ops-blue-900); }
+
+    .actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+    button { padding: 9px 18px; font: inherit; font-weight: 500; border-radius: 8px; cursor: pointer; }
+    .secondary { color: var(--ops-blue-700); background: #ffffff; border: 1.5px solid var(--ops-gray-300); }
+    .secondary:hover { background: var(--ops-blue-50); }
+    .primary { color: #ffffff; background: var(--ops-blue-700); border: 1.5px solid var(--ops-blue-700); }
+    .primary:hover { background: var(--ops-blue-800); border-color: var(--ops-blue-800); }
+    button:disabled { opacity: 0.6; cursor: default; }
+    button:focus-visible { outline: 0; box-shadow: 0 0 0 3px var(--ops-focus-ring); }
+  </style>
+</head>
+<body>
+  <form id="settingsForm" novalidate>
+    <section>
+      <h2>Quarter dates</h2>
+      <p class="hint">Both dates are included in the quarter. Counts start over at zero when a new quarter begins.</p>
+      <div class="quarters" id="quarters">
+        <span></span>
+        <span class="col-label">Starts</span>
+        <span class="col-label">Ends</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>Alert step</h2>
+      <p class="hint">A student is included in the 3 PM email each time their quarter count reaches a multiple of this number.</p>
+      <div class="step-row">
+        <input type="number" id="thresholdStep" min="1" max="50" step="1" aria-label="Alert step">
+        <span id="stepExample" class="hint" style="margin:0;"></span>
+      </div>
+    </section>
+
+    <section>
+      <label for="recipients">Send the alert to</label>
+      <input type="text" id="recipients" autocomplete="off">
+      <p class="hint" style="margin-top:6px;">Separate multiple addresses with commas.</p>
+    </section>
+
+    <div id="status" class="status" role="status"></div>
+
+    <div class="actions">
+      <button type="button" class="secondary" id="cancelButton">Cancel</button>
+      <button type="submit" class="primary" id="saveButton">Save and recount</button>
+    </div>
+  </form>
+
+  <script>
+    var SETTINGS = <?!= settingsJson ?>;
+
+    var quartersEl = document.getElementById('quarters');
+    SETTINGS.quarters.forEach(function(q, i) {
+      var name = document.createElement('span');
+      name.className = 'q-name';
+      name.textContent = q.name;
+      quartersEl.appendChild(name);
+      quartersEl.appendChild(createDateInput('start' + i, q.start, q.name + ' start date'));
+      quartersEl.appendChild(createDateInput('end' + i, q.end, q.name + ' end date'));
+    });
+
+    var stepInput = document.getElementById('thresholdStep');
+    stepInput.value = SETTINGS.thresholdStep;
+    stepInput.addEventListener('input', updateStepExample);
+    updateStepExample();
+
+    document.getElementById('recipients').value = SETTINGS.recipients;
+    document.getElementById('cancelButton').addEventListener('click', function() { google.script.host.close(); });
+    document.getElementById('settingsForm').addEventListener('submit', save);
+
+    function createDateInput(id, value, label) {
+      var input = document.createElement('input');
+      input.type = 'date';
+      input.id = id;
+      input.value = value || '';
+      input.setAttribute('aria-label', label);
+      return input;
+    }
+
+    function updateStepExample() {
+      var step = parseInt(stepInput.value, 10);
+      document.getElementById('stepExample').textContent = step > 0
+        ? 'Alerts at ' + step + ', ' + (step * 2) + ', ' + (step * 3) + ', and so on'
+        : '';
+    }
+
+    function save(event) {
+      event.preventDefault();
+      var form = {
+        quarters: SETTINGS.quarters.map(function(q, i) {
+          return {
+            start: document.getElementById('start' + i).value,
+            end: document.getElementById('end' + i).value
+          };
+        }),
+        thresholdStep: stepInput.value,
+        recipients: document.getElementById('recipients').value
+      };
+
+      setBusy(true);
+      showStatus('', '');
+      google.script.run
+        .withSuccessHandler(function(result) {
+          setBusy(false);
+          showStatus(result.message, result.success ? 'success' : 'error');
+          if (result.success) {
+            document.getElementById('cancelButton').textContent = 'Close';
+          }
+        })
+        .withFailureHandler(function(error) {
+          setBusy(false);
+          showStatus('Could not save: ' + error.message, 'error');
+        })
+        .saveDeviceInfractionSettings(form);
+    }
+
+    function setBusy(busy) {
+      var button = document.getElementById('saveButton');
+      button.disabled = busy;
+      button.textContent = busy ? 'Saving…' : 'Save and recount';
+    }
+
+    function showStatus(message, type) {
+      var status = document.getElementById('status');
+      status.textContent = message;
+      status.className = 'status' + (type ? ' ' + type : '');
+    }
+  </script>
+</body>
+</html>

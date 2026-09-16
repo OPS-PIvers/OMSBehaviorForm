@@ -36,7 +36,17 @@ const DEFAULT_CONSTANTS = {
   },
   SEND_EMAILS: true,
   SIMILARITY_THRESHOLD: 3,
-  MAX_SUGGESTIONS: 5
+  MAX_SUGGESTIONS: 5,
+  // Set from Behavior System > Device Infractions > Quarter Dates & Alert Settings.
+  // Dates are "yyyy-MM-dd". RECIPIENTS falls back to ADMIN_EMAILS.ASSOCIATE_PRINCIPAL when blank.
+  DEVICE_ALERTS: {
+    Q1_START: "", Q1_END: "",
+    Q2_START: "", Q2_END: "",
+    Q3_START: "", Q3_END: "",
+    Q4_START: "", Q4_END: "",
+    THRESHOLD_STEP: 3,
+    RECIPIENTS: ""
+  }
 };
 
 /**
