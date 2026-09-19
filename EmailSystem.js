@@ -294,13 +294,14 @@ function getTeacherName(email) {
  * Sends a Stop and Think email to parents with optional CC to administrators
  * Updated to include parent names, CC list, and selected pillars.
  */
-function sendStopAndThinkEmail(studentFirst, studentLast, parent1Email, parent2Email, location, behaviors, comments, teacherEmail, teacherName, parent1First, parent2First, ccList, selectedPillars) {
+function sendStopAndThinkEmail(studentFirst, studentLast, parent1Email, parent2Email, location, behaviors, comments, teacherEmail, teacherName, parent1First, parent2First, ccList, selectedPillars, openingMessage, closingMessage) {
   loadConstants();
   loadPillarsData();
+  loadEmailTemplates();
   const subject = CONFIG.EMAIL_SUBJECT_STOP_THINK;
 
-  // Create the email body - passing pillars and parent names
-  let body = createStopThinkEmailBody(studentFirst, studentLast, location, behaviors, comments, teacherName, parent1First, parent2First, selectedPillars);
+  // Create the email body - passing pillars, parent names, and the chosen opening/closing
+  let body = createStopThinkEmailBody(studentFirst, studentLast, location, behaviors, comments, teacherName, parent1First, parent2First, selectedPillars, openingMessage, closingMessage);
 
   // Send email to parents with optional CC to admins
   sendEmailToParents(subject, body, parent1Email, parent2Email, teacherEmail, teacherName, ccList);
@@ -332,7 +333,8 @@ function buildSafeHTML(parts) {
 }
 
 function createSimplifiedEmailBody(type, studentFirst, studentLast, parent1First, parent2First,
-                                location, behaviors, comments, teacherName, selectedPillars = []) {
+                                location, behaviors, comments, teacherName, selectedPillars = [],
+                                openingMessage = '', closingMessage = '') {
   loadConstants();
   loadPillarsData();
   // Sanitize inputs
@@ -342,6 +344,22 @@ function createSimplifiedEmailBody(type, studentFirst, studentLast, parent1First
   const safeTeacherName = teacherName ? teacherName.replace(/[<>]/g, '') : '';
   const safeParent1First = parent1First ? parent1First.replace(/[<>]/g, '') : '';
   const safeParent2First = parent2First ? parent2First.replace(/[<>]/g, '') : '';
+
+  // Opening and closing text only apply to Stop & Think. The web app supplies them;
+  // the legacy Google Forms path and the test functions fall back to the first
+  // active template on the EmailTemplates sheet.
+  let safeOpening = '';
+  let safeClosing = '';
+  if (type === 'stopthink') {
+    const resolvedOpening = openingMessage && openingMessage.trim() !== ''
+      ? openingMessage
+      : getDefaultOpeningMessage(safeStudentFirst);
+    const resolvedClosing = closingMessage && closingMessage.trim() !== ''
+      ? closingMessage
+      : getDefaultClosingMessage(safeStudentFirst);
+    safeOpening = resolvedOpening ? resolvedOpening.replace(/[<>]/g, '').trim() : '';
+    safeClosing = resolvedClosing ? resolvedClosing.replace(/[<>]/g, '').trim() : '';
+  }
 
   // Format parent greeting
   let parentGreeting = "Dear";
@@ -431,7 +449,16 @@ function createSimplifiedEmailBody(type, studentFirst, studentLast, parent1First
   if (type === 'goodnews') {
     htmlParts.push(`<p>We wanted to share some positive news! Today, ${safeStudentFirst} demonstrated positive character traits in ${locationWithArticle}. Specifically, we observed:</p>`);
   } else {
-    htmlParts.push(`<p>${safeStudentFirst} had a "Stop and Think" moment today in ${locationWithArticle}. This involved the following behavior${behaviors.length > 1 ? 's' : ''}:</p>`);
+    // The opening paragraph carries the warm framing and the pivot to the concern,
+    // so it replaces the old "had a Stop and Think moment today" sentence rather
+    // than stacking with it. Without an opening we keep the original wording.
+    if (safeOpening) {
+      const openingWithBreaks = safeOpening.replace(/\n/g, '<br>');
+      htmlParts.push(`<p>${openingWithBreaks}</p>`);
+      htmlParts.push(`<p>In ${locationWithArticle} today, we observed:</p>`);
+    } else {
+      htmlParts.push(`<p>${safeStudentFirst} had a "Stop and Think" moment today in ${locationWithArticle}. This involved the following behavior${behaviors.length > 1 ? 's' : ''}:</p>`);
+    }
   }
 
   // Behaviors List
@@ -452,6 +479,9 @@ function createSimplifiedEmailBody(type, studentFirst, studentLast, parent1First
   if (type === 'goodnews') {
     htmlParts.push(`<p>We recognized ${safeStudentFirst} for these positive actions contributing to our school community. Please join us in celebrating this achievement!</p>`);
   } else {
+    if (safeClosing) {
+      htmlParts.push(`<p>${safeClosing}</p>`);
+    }
     htmlParts.push(`<p>These moments provide opportunities for growth and learning about making positive choices. We encourage you to discuss this with ${safeStudentFirst} at home to reinforce expectations for behavior at school.</p>`);
     htmlParts.push(`<p>If you have any questions, please don't hesitate to reach out.</p>`);
   }
@@ -487,14 +517,15 @@ function createGoodNewsEmailBody(studentFirst, studentLast, location, behaviors,
  * Creates the email body for Stop and Think behaviors
  * Passes parent names and pillars to the simplified body creator.
  */
-function createStopThinkEmailBody(studentFirst, studentLast, location, behaviors, comments, teacherName, parent1First, parent2First, selectedPillars) {
+function createStopThinkEmailBody(studentFirst, studentLast, location, behaviors, comments, teacherName, parent1First, parent2First, selectedPillars, openingMessage, closingMessage) {
   // Use the simplified body function, passing all necessary arguments including pillars
   return createSimplifiedEmailBody(
     'stopthink',
     studentFirst, studentLast,
     parent1First, parent2First,
     location, behaviors, comments, teacherName,
-    selectedPillars // Pass pillars
+    selectedPillars, // Pass pillars
+    openingMessage, closingMessage // Pass the teacher's chosen opening and closing
   );
 }
 
@@ -598,6 +629,7 @@ function onOpen() {
     .addSubMenu(ui.createMenu('Admin')
       .addItem('Setup Constants Sheet', 'setupConstantsSheet')
       .addItem('Setup Pillars Sheets', 'setupPillarsSheets')
+      .addItem('Edit Email Opening & Closing Templates', 'openEmailTemplatesSheet')
       .addItem('Setup Daily Summary Trigger (3PM)', 'checkAndCreateDailySummaryTrigger')
       .addItem('Remove Daily Summary Trigger', 'removeDailySummaryTrigger')
       .addSeparator()
