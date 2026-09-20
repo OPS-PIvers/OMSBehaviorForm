@@ -636,8 +636,57 @@ function onOpen() {
       .addItem('Create Edit Trigger (Student Auto-Lookup)', 'createOnEditTrigger')
       .addItem('Remove Edit Trigger', 'removeOnEditTrigger')
       .addItem('Send Test Summary Email Now', 'sendTestDailySummaryEmail')
+      .addSeparator()
+      .addItem('🔑 A Teacher Cannot Open the Form', 'showWebAppAccessHelp')
     )
     .addToUi();
+}
+
+/**
+ * Support dialog for the most common teacher-facing problem: the web app will
+ * not open for one person but works for everyone else.
+ *
+ * Google will not let the script run at all until the teacher has granted it
+ * permission, so nothing in this project can re-prompt them from the inside.
+ * What resets the situation is removing the old grant and opening the form with
+ * one account signed in, which is what this dialog hands an admin to send on.
+ */
+function showWebAppAccessHelp() {
+  const execUrl = getWebAppUrl();
+  const urlLine = execUrl ?
+    '<p><strong>Form link:</strong> <a href="' + escapeHtmlForHelpPage(execUrl) + '" target="_blank" rel="noopener noreferrer">' + escapeHtmlForHelpPage(execUrl) + '</a></p>' :
+    '<p><strong>Form link:</strong> not available — the script has not been deployed as a web app yet.</p>';
+
+  const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' +
+    'body { font-family: Roboto, Arial, sans-serif; font-size: 14px; color: #333333; line-height: 1.55; margin: 0; padding: 16px; }' +
+    'h3 { font-family: Lexend, Arial, sans-serif; color: #1d2a5d; margin: 18px 0 6px; font-size: 15px; }' +
+    'h3:first-child { margin-top: 0; }' +
+    'ol { padding-left: 20px; margin: 0 0 10px; } li { margin-bottom: 6px; }' +
+    'code { background-color: #f3f3f3; border-radius: 4px; padding: 1px 5px; }' +
+    '.note { background-color: #f4f6fa; border-left: 3px solid #2d3f89; border-radius: 6px; padding: 10px 12px; margin: 12px 0; }' +
+    '</style></head><body>' +
+    '<h3>Send the teacher these steps</h3>' +
+    '<ol>' +
+    '<li>Sign out of <em>every</em> Google account in the browser, then sign back in to the school account only. ' +
+    'A second signed-in account is the usual cause: Google opens the form as the wrong person and never shows the permission screen at all.</li>' +
+    '<li>Go to <code>myaccount.google.com/permissions</code>, find <strong>Character Form</strong>, and click <strong>Remove access</strong>. ' +
+    'Skip this if it is not listed.</li>' +
+    '<li>Open the form link below, choose the school account, and click <strong>Allow</strong>. ' +
+    'If Google warns that the app is not verified, click <strong>Advanced</strong> and then the "Go to..." link first.</li>' +
+    '</ol>' +
+    urlLine +
+    '<div class="note">Clearing cache and cookies does not help here — the permission grant lives on the Google account, not in the browser. ' +
+    'Removing access is what clears it. An incognito window with one account signed in is a good temporary workaround.</div>' +
+    '<h3>Why it cannot be fixed from inside the form</h3>' +
+    '<p>Until a teacher grants permission, Google blocks the request before any of this project\'s code runs, so the form cannot show them a banner. ' +
+    'Editing the requested permissions in <code>appsscript.json</code> does force a fresh permission screen for everyone on their next visit &mdash; ' +
+    'that is the one reliable way to re-prompt a whole staff at once.</p>' +
+    '</body></html>';
+
+  SpreadsheetApp.getUi().showModalDialog(
+    HtmlService.createHtmlOutput(html).setWidth(560).setHeight(520),
+    'A Teacher Cannot Open the Form'
+  );
 }
 
 /**
