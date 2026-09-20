@@ -41,20 +41,171 @@ function calculateLevenshteinDistance(a, b) {
  * and send emails directly from their accounts.
  */
 function doGet(e) {
-  // Load constants to get school name
-  loadConstants();
-  
-  // Create dynamic title using school name
-  const dynamicTitle = `${CONFIG.SCHOOL_NAME || 'School'} Character Form`;
-  
-  // Log parameters if needed: Logger.log(JSON.stringify(e));
-  const htmlOutput = HtmlService.createHtmlOutput(createImprovedBehaviorForm()) // Use the new function
-    .setTitle(dynamicTitle)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
-    // Allow embedding if necessary, otherwise remove setXFrameOptionsMode
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  try {
+    // Load constants to get school name
+    loadConstants();
 
-  return htmlOutput;
+    // Create dynamic title using school name
+    const dynamicTitle = `${CONFIG.SCHOOL_NAME || 'School'} Character Form`;
+
+    // Log parameters if needed: Logger.log(JSON.stringify(e));
+    const htmlOutput = HtmlService.createHtmlOutput(createImprovedBehaviorForm()) // Use the new function
+      .setTitle(dynamicTitle)
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      // Allow embedding if necessary, otherwise remove setXFrameOptionsMode
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+
+    return htmlOutput;
+  } catch (err) {
+    // The form never renders a raw Apps Script stack trace at a teacher. Anything
+    // that goes wrong before the form is built (denied permissions, no access to
+    // the bound spreadsheet, wrong Google account) becomes a page that says what
+    // to click. See createAccessHelpPage().
+    Logger.log(`doGet failed: ${err && err.stack ? err.stack : err}`);
+    return HtmlService.createHtmlOutput(createAccessHelpPage(err))
+      .setTitle('Permission needed')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+}
+
+/**
+ * The live /exec URL of this deployment, or '' if it can't be read.
+ * Used by the recovery page so its buttons always point at the real web app
+ * instead of a URL pasted into the code.
+ */
+function getWebAppUrl() {
+  try {
+    return ScriptApp.getService().getUrl() || '';
+  } catch (err) {
+    Logger.log(`Could not read the web app URL: ${err}`);
+    return '';
+  }
+}
+
+/**
+ * True when an error looks like Google refusing the script rather than the
+ * script failing on its own. Both the server (doGet) and the client banner use
+ * this wording list, so the two stay in agreement about what counts as a
+ * permission problem.
+ */
+function isAuthorizationError(err) {
+  const text = String((err && (err.message || err.details)) || err || '').toLowerCase();
+  return text.indexOf('authoriz') !== -1 ||
+         text.indexOf('permission') !== -1 ||
+         text.indexOf('access denied') !== -1 ||
+         text.indexOf('you do not have access') !== -1 ||
+         text.indexOf('does not have permission') !== -1 ||
+         text.indexOf('login required') !== -1 ||
+         text.indexOf('script has attempted') !== -1;
+}
+
+/**
+ * Standalone page shown instead of the form when the form can't be built.
+ *
+ * Note on what this can and can't do: if a teacher has never granted the script
+ * its permissions, Google blocks the request before any of this code runs, so
+ * this page cannot be the first thing they see. What it does cover is every
+ * failure *after* consent — a revoked grant, no access to the spreadsheet, or
+ * the browser resolving /exec under the wrong Google account, which is the case
+ * that otherwise looks like "the form just never loads for me".
+ */
+function createAccessHelpPage(err) {
+  const execUrl = getWebAppUrl();
+
+  let signedInAs = '';
+  try {
+    signedInAs = Session.getActiveUser().getEmail() || '';
+  } catch (ignore) {
+    signedInAs = '';
+  }
+
+  const permissionProblem = isAuthorizationError(err);
+  const detail = String((err && (err.message || err.stack)) || err || 'Unknown error');
+
+  const heading = permissionProblem ?
+    'This form needs your permission to run' :
+    'The form could not open';
+  const lead = permissionProblem ?
+    'Google is not letting the Character Form run under your account yet. It only takes one click to fix.' :
+    'Something went wrong before the form finished loading. The steps below fix almost every case.';
+
+  // Built with concatenation rather than a template literal so this page can be
+  // pasted around without the ${} pitfalls the main form has.
+  let html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>Permission needed</title>' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com">' +
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">' +
+    '<style>' +
+    'body { font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background-color: #f4f6fa; color: #333333; margin: 0; padding: 24px 16px; line-height: 1.55; }' +
+    '.card { max-width: 640px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 28px 28px 32px; box-shadow: 0 1px 2px rgba(29, 42, 93, 0.08); }' +
+    'h1 { font-family: "Lexend", sans-serif; color: #1d2a5d; font-size: 24px; font-weight: 700; line-height: 1.25; margin: 0 0 8px; }' +
+    'h2 { font-family: "Lexend", sans-serif; color: #1d2a5d; font-size: 16px; font-weight: 600; margin: 28px 0 8px; }' +
+    'p { margin: 0 0 12px; font-size: 15px; }' +
+    '.lead { color: #666666; }' +
+    '.banner { background-color: #f5e3e3; border-left: 3px solid #ad2122; color: #7a1718; border-radius: 8px; padding: 14px 16px; font-weight: 500; margin-bottom: 20px; }' +
+    '.btn { display: inline-block; background-color: #2d3f89; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 16px; padding: 13px 26px; border-radius: 8px; margin: 6px 0; }' +
+    '.btn:hover { background-color: #253473; }' +
+    '.btn-secondary { background-color: #ffffff; color: #2d3f89; border: 1.5px solid #c0c7e0; }' +
+    '.btn-secondary:hover { background-color: #eaecf5; }' +
+    'ol, ul { margin: 0 0 12px; padding-left: 22px; font-size: 15px; }' +
+    'li { margin-bottom: 7px; }' +
+    'code { background-color: #f3f3f3; border-radius: 4px; padding: 1px 5px; font-size: 14px; }' +
+    '.who { font-size: 14px; color: #666666; background-color: #f4f6fa; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; }' +
+    'details { margin-top: 24px; font-size: 13px; color: #808080; }' +
+    'summary { cursor: pointer; }' +
+    'pre { white-space: pre-wrap; word-break: break-word; background-color: #f3f3f3; border-radius: 8px; padding: 12px; font-size: 12px; color: #666666; }' +
+    '</style></head><body><div class="card">';
+
+  html += '<div class="banner">' + escapeHtmlForHelpPage(heading) + '</div>';
+  html += '<h1>' + escapeHtmlForHelpPage(heading) + '</h1>';
+  html += '<p class="lead">' + escapeHtmlForHelpPage(lead) + '</p>';
+
+  if (signedInAs) {
+    html += '<div class="who">You are signed in as <strong>' + escapeHtmlForHelpPage(signedInAs) + '</strong>. ' +
+      'If that is not your school account, that is the problem — see step 2.</div>';
+  } else {
+    html += '<div class="who">Google did not tell this form who you are, which usually means you are signed in to more than one account — see step 2.</div>';
+  }
+
+  html += '<h2>1. Allow the permissions</h2>';
+  html += '<p>Open the form again and choose <strong>Allow</strong> on the Google screen. ' +
+    'Pick your school account, click <strong>Advanced</strong> then <strong>Go to Character Form</strong> if Google warns you the app is not verified, and then <strong>Allow</strong>.</p>';
+  if (execUrl) {
+    html += '<p><a class="btn" href="' + escapeHtmlForHelpPage(execUrl) + '" target="_top">Open the form and allow permissions</a></p>';
+  }
+
+  html += '<h2>2. If you clicked "Deny" before, or nothing happens</h2>';
+  html += '<p>Denying once does not lock you out, but a second Google account signed in to the same browser will — Google quietly opens the form as the wrong person and never asks for permission at all. Do this:</p>';
+  html += '<ol>' +
+    '<li>Go to <code>myaccount.google.com/permissions</code>, find <strong>Character Form</strong>, and click <strong>Remove access</strong>. (Nothing is lost — this only clears the old answer.)</li>' +
+    '<li>Sign out of <em>every</em> Google account in this browser, then sign back in to your school account <strong>only</strong>.</li>' +
+    '<li>Open the form link again and click <strong>Allow</strong>.</li>' +
+    '</ol>';
+  html += '<p><a class="btn btn-secondary" href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">Open my Google permissions</a></p>';
+
+  html += '<h2>3. Still stuck?</h2>';
+  html += '<p>Send the details below to whoever administers the Character Form. An incognito window with only your school account signed in is a reliable workaround in the meantime.</p>';
+
+  html += '<details><summary>Technical details</summary><pre>' + escapeHtmlForHelpPage(detail) + '</pre></details>';
+  html += '</div></body></html>';
+
+  return html;
+}
+
+/**
+ * Minimal HTML escaping for the recovery page. Kept local and distinctly named
+ * because every file shares one global scope (see CLAUDE.md).
+ */
+function escapeHtmlForHelpPage(text) {
+  return String(text === null || text === undefined ? '' : text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /**
@@ -74,6 +225,10 @@ function createImprovedBehaviorForm() {
 
   // Pass the Stop & Think opening/closing templates to the client-side JavaScript
   const templatesJson = JSON.stringify(EMAIL_TEMPLATES);
+
+  // The live /exec URL, so the permission banner can send a teacher back through
+  // Google's consent screen without a hardcoded link.
+  const execUrlJson = JSON.stringify(getWebAppUrl());
 
   return `
 <!DOCTYPE html>
@@ -263,6 +418,13 @@ function createImprovedBehaviorForm() {
     .alert-success { background-color: var(--ops-blue-100); color: var(--ops-blue-900); border-left-color: var(--ops-blue-700); }
     .alert-danger { background-color: var(--ops-red-100); color: var(--ops-red-900); border-left-color: var(--ops-red-700); }
     .alert-warning { background-color: var(--ops-red-50); color: var(--ops-red-900); border-left-color: var(--ops-red-600); }
+    /* Shown only when a server call comes back as a permissions failure. */
+    .permission-banner { display: none; align-items: center; gap: 16px; flex-wrap: wrap; padding: 14px 16px; margin-bottom: 20px; border-radius: 8px; font-size: 15px; background-color: var(--ops-red-50); color: var(--ops-red-900); border-left: 3px solid var(--ops-red-700); }
+    .permission-banner.is-visible { display: flex; }
+    .permission-banner-text { flex: 1 1 260px; font-weight: 700; }
+    .permission-banner-text span { display: block; font-weight: 400; margin-top: 2px; }
+    .permission-banner-btn { flex: 0 0 auto; background-color: var(--ops-blue-700); color: #ffffff; text-decoration: none; font-weight: 700; font-size: 15px; padding: 10px 18px; border-radius: 8px; }
+    .permission-banner-btn:hover { background-color: var(--ops-blue-800); }
     .suggestion-link { color: var(--ops-blue-700); text-decoration: underline; cursor: pointer; font-weight: 700; }
     .note-box { background-color: var(--ops-blue-100); border-left: 3px solid var(--ops-blue-700); padding: 12px 16px; margin: 16px 0 0; font-size: 14px; line-height: 1.5; border-radius: 8px; color: var(--ops-gray-900); }
     .checkbox-group { margin-top: 4px; }
@@ -351,6 +513,12 @@ function createImprovedBehaviorForm() {
 <body>
   <div class="container">
     <h1>OMS Character Form</h1>
+    <div id="permissionBanner" class="permission-banner" role="alert">
+      <div class="permission-banner-text">This form does not have permission to run as you.
+        <span>To use this site you must allow Google permissions. Click the button, pick your school account, then choose Allow.</span>
+      </div>
+      <a id="permissionBannerLink" class="permission-banner-btn" href="#" target="_top">Allow permissions</a>
+    </div>
     <div id="statusMessage"></div>
 
     <form id="behaviorForm">
@@ -726,6 +894,43 @@ function createImprovedBehaviorForm() {
      statusDiv.appendChild(alertDiv);
      // Scroll to top to make sure message is visible
      window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Injected by the server so the banner points at this deployment.
+  const WEB_APP_URL = ${execUrlJson};
+
+  // Mirrors isAuthorizationError() on the server: does this failure mean Google
+  // refused us, rather than our own code breaking?
+  function isPermissionError(error) {
+     const text = String((error && (error.message || error.details)) || error || '').toLowerCase();
+     const markers = ['authoriz', 'permission', 'access denied', 'you do not have access',
+                      'does not have permission', 'login required', 'script has attempted'];
+     for (let i = 0; i < markers.length; i++) {
+        if (text.indexOf(markers[i]) !== -1) return true;
+     }
+     return false;
+  }
+
+  function showPermissionBanner() {
+     const banner = document.getElementById('permissionBanner');
+     if (!banner) return;
+     const link = document.getElementById('permissionBannerLink');
+     if (link) link.href = WEB_APP_URL || 'https://myaccount.google.com/permissions';
+     banner.classList.add('is-visible');
+     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Every google.script.run failure goes through here so a permissions problem
+  // surfaces as the banner instead of a raw error string the teacher can't act on.
+  function handleServerError(error, context) {
+     console.error(context + ':', error);
+     if (isPermissionError(error)) {
+        showPermissionBanner();
+        showStatus('Google blocked that because this form does not have permission to run as you. ' +
+                   'Use the <strong>Allow permissions</strong> button above, then try again.', 'danger');
+        return;
+     }
+     showStatus(context + ': ' + (error.message || error), 'danger');
   }
 
   function showLoading(show) {
@@ -1607,13 +1812,12 @@ function createImprovedBehaviorForm() {
 
       google.script.run
           .withFailureHandler(function(error) {
-              console.error("Submission Failure:", error);
               showLoading(false);
               sendBtn.disabled = false;
               sendBtn.textContent = 'Send Email';
               closePreviewModal();
-              showStatus('Error submitting form: ' + (error.message || error), 'danger');
               document.getElementById('submitBtn').disabled = false;
+              handleServerError(error, 'Error submitting form');
           })
           .withSuccessHandler(function(result) {
               console.log("Submission Result:", result);
@@ -1706,9 +1910,8 @@ function createImprovedBehaviorForm() {
            showLoading(true);
            google.script.run
                .withFailureHandler(function(error) {
-                   console.error("Lookup Failure:", error);
-                   showStatus('Error during student lookup: ' + (error.message || error), 'danger');
                    showLoading(false);
+                   handleServerError(error, 'Error during student lookup');
                })
                .withSuccessHandler(function(result) {
                   console.log("Lookup Result:", result);
@@ -1898,10 +2101,9 @@ function createImprovedBehaviorForm() {
            showLoading(true);
            google.script.run
                .withFailureHandler(function(error) {
-                   console.error("Preview Failure:", error);
-                   showStatus('Error building the email preview: ' + (error.message || error), 'danger');
                    showLoading(false);
                    submitButton.disabled = false; // Re-enable button
+                   handleServerError(error, 'Error building the email preview');
                })
                .withSuccessHandler(function(preview) {
                    showLoading(false);
