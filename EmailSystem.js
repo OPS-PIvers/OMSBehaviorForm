@@ -297,10 +297,9 @@ function getTeacherName(email) {
 function sendStopAndThinkEmail(studentFirst, studentLast, parent1Email, parent2Email, location, behaviors, comments, teacherEmail, teacherName, parent1First, parent2First, ccList, selectedPillars, openingMessage, closingMessage) {
   loadConstants();
   loadPillarsData();
-  loadEmailTemplates();
   const subject = CONFIG.EMAIL_SUBJECT_STOP_THINK;
 
-  // Create the email body - passing pillars, parent names, and the chosen opening/closing
+  // Create the email body - passing pillars, parent names, and the teacher's optional opening/closing
   let body = createStopThinkEmailBody(studentFirst, studentLast, location, behaviors, comments, teacherName, parent1First, parent2First, selectedPillars, openingMessage, closingMessage);
 
   // Send email to parents with optional CC to admins
@@ -345,20 +344,13 @@ function createSimplifiedEmailBody(type, studentFirst, studentLast, parent1First
   const safeParent1First = parent1First ? parent1First.replace(/[<>]/g, '') : '';
   const safeParent2First = parent2First ? parent2First.replace(/[<>]/g, '') : '';
 
-  // Opening and closing text only apply to Stop & Think. The web app supplies them;
-  // the legacy Google Forms path and the test functions fall back to the first
-  // active template on the EmailTemplates sheet.
+  // Opening and closing text only apply to Stop & Think, and both are optional.
+  // They are the teacher's own words; left blank, the email reads as it always has.
   let safeOpening = '';
   let safeClosing = '';
   if (type === 'stopthink') {
-    const resolvedOpening = openingMessage && openingMessage.trim() !== ''
-      ? openingMessage
-      : getDefaultOpeningMessage(safeStudentFirst);
-    const resolvedClosing = closingMessage && closingMessage.trim() !== ''
-      ? closingMessage
-      : getDefaultClosingMessage(safeStudentFirst);
-    safeOpening = resolvedOpening ? resolvedOpening.replace(/[<>]/g, '').trim() : '';
-    safeClosing = resolvedClosing ? resolvedClosing.replace(/[<>]/g, '').trim() : '';
+    safeOpening = openingMessage ? openingMessage.replace(/[<>]/g, '').trim() : '';
+    safeClosing = closingMessage ? closingMessage.replace(/[<>]/g, '').trim() : '';
   }
 
   // Format parent greeting
@@ -449,16 +441,12 @@ function createSimplifiedEmailBody(type, studentFirst, studentLast, parent1First
   if (type === 'goodnews') {
     htmlParts.push(`<p>We wanted to share some positive news! Today, ${safeStudentFirst} demonstrated positive character traits in ${locationWithArticle}. Specifically, we observed:</p>`);
   } else {
-    // The opening paragraph carries the warm framing and the pivot to the concern,
-    // so it replaces the old "had a Stop and Think moment today" sentence rather
-    // than stacking with it. Without an opening we keep the original wording.
+    // A teacher-written opening goes ahead of the standard sentence, which always
+    // follows so the email still names the moment however the opening is worded.
     if (safeOpening) {
-      const openingWithBreaks = safeOpening.replace(/\n/g, '<br>');
-      htmlParts.push(`<p>${openingWithBreaks}</p>`);
-      htmlParts.push(`<p>In ${locationWithArticle} today, we observed:</p>`);
-    } else {
-      htmlParts.push(`<p>${safeStudentFirst} had a "Stop and Think" moment today in ${locationWithArticle}. This involved the following behavior${behaviors.length > 1 ? 's' : ''}:</p>`);
+      htmlParts.push(`<p>${safeOpening.replace(/\n/g, '<br>')}</p>`);
     }
+    htmlParts.push(`<p>${safeStudentFirst} had a "Stop and Think" moment today in ${locationWithArticle}. This involved the following behavior${behaviors.length > 1 ? 's' : ''}:</p>`);
   }
 
   // Behaviors List
@@ -480,7 +468,7 @@ function createSimplifiedEmailBody(type, studentFirst, studentLast, parent1First
     htmlParts.push(`<p>We recognized ${safeStudentFirst} for these positive actions contributing to our school community. Please join us in celebrating this achievement!</p>`);
   } else {
     if (safeClosing) {
-      htmlParts.push(`<p>${safeClosing}</p>`);
+      htmlParts.push(`<p>${safeClosing.replace(/\n/g, '<br>')}</p>`);
     }
     htmlParts.push(`<p>These moments provide opportunities for growth and learning about making positive choices. We encourage you to discuss this with ${safeStudentFirst} at home to reinforce expectations for behavior at school.</p>`);
     htmlParts.push(`<p>If you have any questions, please don't hesitate to reach out.</p>`);
@@ -525,7 +513,7 @@ function createStopThinkEmailBody(studentFirst, studentLast, location, behaviors
     parent1First, parent2First,
     location, behaviors, comments, teacherName,
     selectedPillars, // Pass pillars
-    openingMessage, closingMessage // Pass the teacher's chosen opening and closing
+    openingMessage, closingMessage // Pass the teacher's optional opening and closing
   );
 }
 
@@ -629,7 +617,6 @@ function onOpen() {
     .addSubMenu(ui.createMenu('Admin')
       .addItem('Setup Constants Sheet', 'setupConstantsSheet')
       .addItem('Setup Pillars Sheets', 'setupPillarsSheets')
-      .addItem('Edit Email Opening & Closing Templates', 'openEmailTemplatesSheet')
       .addItem('Setup Daily Summary Trigger (3PM)', 'checkAndCreateDailySummaryTrigger')
       .addItem('Remove Daily Summary Trigger', 'removeDailySummaryTrigger')
       .addSeparator()

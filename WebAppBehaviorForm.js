@@ -212,19 +212,15 @@ function escapeHtmlForHelpPage(text) {
  * Returns an improved student behavior form with Pillar integration.
  */
 function createImprovedBehaviorForm() {
-  // Load constants, pillar data, and email templates from sheets
+  // Load constants and pillar data from sheets
   loadConstants();
   loadPillarsData();
-  loadEmailTemplates();
   
   // Create dynamic title using school name
   const dynamicTitle = `${CONFIG.SCHOOL_NAME || 'School'} Character Form`;
   
   // Pass Pillar data to the client-side JavaScript
   const pillarsJson = JSON.stringify(PILLARS_DATA);
-
-  // Pass the Stop & Think opening/closing templates to the client-side JavaScript
-  const templatesJson = JSON.stringify(EMAIL_TEMPLATES);
 
   // The live /exec URL, so the permission banner can send a teacher back through
   // Google's consent screen without a hardcoded link.
@@ -447,21 +443,6 @@ function createImprovedBehaviorForm() {
     .suggestions-placeholder { color: var(--ops-gray-700); font-style: italic; font-size: 14px; padding: 6px 0; }
     .behavior-placeholder { color: var(--ops-gray-700); font-style: italic; }
 
-    /* --- Stop & Think Opening / Closing Templates --- */
-    .template-group { margin-bottom: 16px; }
-    .template-group-label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ops-blue-700); margin-bottom: 8px; }
-    .template-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .template-chip {
-      background-color: var(--ops-blue-50); border: 1.5px solid var(--ops-blue-200); color: var(--ops-gray-900);
-      padding: 10px 14px; border-radius: 10px; font-size: 14px; line-height: 1.4; cursor: pointer;
-      transition: background-color 0.2s, border-color 0.2s; text-align: left; flex: 1 1 260px; max-width: 100%;
-    }
-    .template-chip:hover { background-color: var(--ops-blue-100); border-color: var(--ops-blue-400); }
-    .template-chip.selected { background-color: var(--ops-blue-100); border-color: var(--ops-blue-700); box-shadow: 0 0 0 2px var(--ops-focus-ring); font-weight: 500; }
-    .template-chip .template-chip-transition { display: block; margin-top: 6px; color: var(--ops-gray-700); font-size: 13px; font-weight: 400; }
-    .required-hint { font-size: 13px; color: var(--ops-red-700); font-weight: 500; margin-top: 8px; }
-    .template-empty { color: var(--ops-gray-700); font-style: italic; font-size: 14px; }
-
     /* --- Preview Modal --- */
     .preview-overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -500,7 +481,6 @@ function createImprovedBehaviorForm() {
       .behavior-column { max-width: 100%; }
     }
     @media (max-width: 480px) {
-      .template-chip { flex: 1 1 100%; }
       .preview-footer { flex-direction: column-reverse; }
       .preview-footer button { width: 100%; }
       h1 { font-size: 22px; }
@@ -674,24 +654,17 @@ function createImprovedBehaviorForm() {
 
       <!-- Step 6b: Stop & Think Opening & Closing (hidden for Good News) -->
       <div class="form-section" id="section-message-tone" style="display: none;">
-        <h2>Email Opening &amp; Closing*</h2>
+        <h2>Email Opening &amp; Closing (Optional)</h2>
         <div class="section-content">
           <div class="form-group form-group-full">
-            <label>Opening Message*</label>
-            <div class="template-chips-wrap" id="openingTemplateChips">
-              <div class="template-empty">Enter the student's first name to see opening options.</div>
-            </div>
-            <label for="openingMessage" style="margin-top: 16px;">Your opening (edit as needed)</label>
-            <textarea id="openingMessage" name="openingMessage" rows="3" placeholder="Click an opening above, then personalize it if you like."></textarea>
-            <div class="note-box">Opening with something genuine you appreciate about the student sets a collaborative tone. Each option ends with a sentence that bridges into today's concern.</div>
+            <label for="openingMessage">Opening</label>
+            <textarea id="openingMessage" name="openingMessage" rows="3" placeholder="Optional. Leave blank to use the standard email."></textarea>
+            <div class="note-box">Appears right after the greeting, before the standard sentence describing the Stop &amp; Think moment.</div>
           </div>
           <div class="form-group form-group-full" style="margin-top: 20px;">
-            <label>Closing Message*</label>
-            <input type="hidden" id="closingTemplateId" name="closingTemplateId">
-            <div class="template-chips-wrap" id="closingTemplateChips">
-              <div class="template-empty">Enter the student's first name to see closing options.</div>
-            </div>
-            <div class="note-box">This partnership message appears just before the standard closing paragraph.</div>
+            <label for="closingMessage">Closing</label>
+            <textarea id="closingMessage" name="closingMessage" rows="3" placeholder="Optional. Leave blank to use the standard email."></textarea>
+            <div class="note-box">Appears just before the standard closing paragraph.</div>
           </div>
         </div>
       </div>
@@ -754,8 +727,6 @@ function createImprovedBehaviorForm() {
 <script>
   // --- Make Pillar Data available to client-side JS ---
   const ALL_PILLARS_DATA = ${pillarsJson}; // Passed from server-side
-  const ALL_EMAIL_TEMPLATES = ${templatesJson}; // Stop & Think opening/closing templates
-  const STUDENT_NAME_TOKEN = "[Student's Name]";
   let pendingFormData = null; // Holds the validated submission while the preview modal is open
 
   // --- Client-Side Global Variables ---
@@ -1503,8 +1474,9 @@ function createImprovedBehaviorForm() {
 
     document.getElementById('comments').value = '';
 
-    // Clear the Stop & Think opening and closing selections
-    clearMessageToneSelections();
+    // Clear the Stop & Think opening and closing
+    document.getElementById('openingMessage').value = '';
+    document.getElementById('closingMessage').value = '';
     
     // Reset behavior type toggle to good news
     document.querySelectorAll('.toggle-button[data-type]').forEach(b => b.classList.remove('active'));
@@ -1528,235 +1500,16 @@ function createImprovedBehaviorForm() {
     });
   }
 
-  // --- Stop & Think Opening / Closing Templates ---
+
+  // --- Stop & Think Opening / Closing ---
 
   /**
-   * Swaps the [Student's Name] placeholder for the student's actual first name.
-   */
-  function personalizeTemplate(text, studentFirst) {
-      if (!text) return '';
-      if (!studentFirst) return text;
-      return text.split(STUDENT_NAME_TOKEN).join(studentFirst);
-  }
-
-  /**
-   * Builds the full opening paragraph: the warm observation plus the transition
-   * sentence that bridges into today's concern.
-   */
-  function buildOpeningText(template, studentFirst) {
-      if (!template) return '';
-      const parts = [];
-      if (template.text) parts.push(personalizeTemplate(template.text, studentFirst));
-      if (template.transition) parts.push(personalizeTemplate(template.transition, studentFirst));
-      return parts.join(' ');
-  }
-
-  function getStudentFirstName() {
-      const field = document.getElementById('studentFirst');
-      return field ? field.value.trim() : '';
-  }
-
-  /**
-   * Shows the opening/closing section for Stop & Think only, and refreshes the
-   * chips so they always read with the current student's name.
+   * Shows the optional opening/closing section for Stop & Think only.
    */
   function updateMessageToneVisibility() {
       const section = document.getElementById('section-message-tone');
       if (!section) return;
-      if (currentBehaviorType === 'stopthink') {
-          section.style.display = '';
-          renderTemplateChips();
-      } else {
-          section.style.display = 'none';
-      }
-  }
-
-  /**
-   * Renders the opening chips (grouped by category) and the closing chips.
-   * Called whenever the student's name or the behavior type changes.
-   */
-  function renderTemplateChips() {
-      const studentFirst = getStudentFirstName();
-      renderOpeningChips(studentFirst);
-      renderClosingChips(studentFirst);
-      refreshInsertedOpening(studentFirst);
-      refreshSelectedClosing(studentFirst);
-  }
-
-  function renderOpeningChips(studentFirst) {
-      const container = document.getElementById('openingTemplateChips');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const openings = (ALL_EMAIL_TEMPLATES && ALL_EMAIL_TEMPLATES.openings) ? ALL_EMAIL_TEMPLATES.openings : [];
-      if (!openings.length) {
-          container.innerHTML = '<div class="template-empty">No opening templates found. Add rows to the EmailTemplates sheet.</div>';
-          return;
-      }
-      if (!studentFirst) {
-          container.innerHTML = '<div class="template-empty">Enter the student\u2019s first name to see opening options.</div>';
-          return;
-      }
-
-      // Group by the category labels from the sheet, preserving sheet order.
-      const categories = [];
-      const byCategory = {};
-      openings.forEach(function(template) {
-          const category = template.category || 'General';
-          if (!byCategory[category]) {
-              byCategory[category] = [];
-              categories.push(category);
-          }
-          byCategory[category].push(template);
-      });
-
-      const selectedId = document.getElementById('openingMessage').dataset.templateId || '';
-
-      categories.forEach(function(category) {
-          const group = document.createElement('div');
-          group.className = 'template-group';
-
-          const label = document.createElement('div');
-          label.className = 'template-group-label';
-          label.textContent = category;
-          group.appendChild(label);
-
-          const chips = document.createElement('div');
-          chips.className = 'template-chips';
-
-          byCategory[category].forEach(function(template) {
-              const chip = document.createElement('div');
-              chip.className = 'template-chip' + (template.id === selectedId ? ' selected' : '');
-              chip.dataset.templateId = template.id;
-
-              const main = document.createElement('span');
-              main.textContent = personalizeTemplate(template.text, studentFirst);
-              chip.appendChild(main);
-
-              if (template.transition) {
-                  const transition = document.createElement('span');
-                  transition.className = 'template-chip-transition';
-                  transition.textContent = personalizeTemplate(template.transition, studentFirst);
-                  chip.appendChild(transition);
-              }
-
-              chip.addEventListener('click', function() {
-                  applyOpeningTemplate(template.id);
-              });
-
-              chips.appendChild(chip);
-          });
-
-          group.appendChild(chips);
-          container.appendChild(group);
-      });
-  }
-
-  function renderClosingChips(studentFirst) {
-      const container = document.getElementById('closingTemplateChips');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const closings = (ALL_EMAIL_TEMPLATES && ALL_EMAIL_TEMPLATES.closings) ? ALL_EMAIL_TEMPLATES.closings : [];
-      if (!closings.length) {
-          container.innerHTML = '<div class="template-empty">No closing templates found. Add rows to the EmailTemplates sheet.</div>';
-          return;
-      }
-      if (!studentFirst) {
-          container.innerHTML = '<div class="template-empty">Enter the student\u2019s first name to see closing options.</div>';
-          return;
-      }
-
-      const selectedId = document.getElementById('closingTemplateId').value;
-
-      const chips = document.createElement('div');
-      chips.className = 'template-chips';
-
-      closings.forEach(function(template) {
-          const chip = document.createElement('div');
-          chip.className = 'template-chip' + (template.id === selectedId ? ' selected' : '');
-          chip.dataset.templateId = template.id;
-          chip.textContent = personalizeTemplate(template.text, studentFirst);
-          chip.addEventListener('click', function() {
-              applyClosingTemplate(template.id);
-          });
-          chips.appendChild(chip);
-      });
-
-      container.appendChild(chips);
-  }
-
-  /**
-   * Inserts an opening into the editable textarea. The rendered text is stashed on
-   * the element so we can tell later whether the teacher edited it.
-   */
-  function applyOpeningTemplate(templateId) {
-      const textarea = document.getElementById('openingMessage');
-      const openings = (ALL_EMAIL_TEMPLATES && ALL_EMAIL_TEMPLATES.openings) ? ALL_EMAIL_TEMPLATES.openings : [];
-      const template = openings.filter(function(t) { return t.id === templateId; })[0];
-      if (!textarea || !template) return;
-
-      const rendered = buildOpeningText(template, getStudentFirstName());
-      textarea.value = rendered;
-      textarea.dataset.templateId = template.id;
-      textarea.dataset.rendered = rendered;
-
-      document.querySelectorAll('#openingTemplateChips .template-chip').forEach(function(chip) {
-          chip.classList.toggle('selected', chip.dataset.templateId === templateId);
-      });
-  }
-
-  function applyClosingTemplate(templateId) {
-      const hidden = document.getElementById('closingTemplateId');
-      if (!hidden) return;
-      hidden.value = templateId;
-
-      document.querySelectorAll('#closingTemplateChips .template-chip').forEach(function(chip) {
-          chip.classList.toggle('selected', chip.dataset.templateId === templateId);
-      });
-  }
-
-  /**
-   * Re-renders an inserted opening after the student's name changes, but only when
-   * the teacher has not edited the text -- their wording is never overwritten.
-   */
-  function refreshInsertedOpening(studentFirst) {
-      const textarea = document.getElementById('openingMessage');
-      if (!textarea || !textarea.dataset.templateId) return;
-
-      const wasUnedited = textarea.value === (textarea.dataset.rendered || '');
-      if (!wasUnedited) return;
-
-      const openings = (ALL_EMAIL_TEMPLATES && ALL_EMAIL_TEMPLATES.openings) ? ALL_EMAIL_TEMPLATES.openings : [];
-      const template = openings.filter(function(t) { return t.id === textarea.dataset.templateId; })[0];
-      if (!template) return;
-
-      const rendered = buildOpeningText(template, studentFirst);
-      textarea.value = rendered;
-      textarea.dataset.rendered = rendered;
-  }
-
-  /**
-   * Keeps the selected closing highlighted after a re-render.
-   */
-  function refreshSelectedClosing(studentFirst) {
-      const hidden = document.getElementById('closingTemplateId');
-      if (!hidden || !hidden.value) return;
-      document.querySelectorAll('#closingTemplateChips .template-chip').forEach(function(chip) {
-          chip.classList.toggle('selected', chip.dataset.templateId === hidden.value);
-      });
-  }
-
-  function clearMessageToneSelections() {
-      const textarea = document.getElementById('openingMessage');
-      if (textarea) {
-          textarea.value = '';
-          delete textarea.dataset.templateId;
-          delete textarea.dataset.rendered;
-      }
-      const hidden = document.getElementById('closingTemplateId');
-      if (hidden) hidden.value = '';
-      renderTemplateChips();
+      section.style.display = currentBehaviorType === 'stopthink' ? '' : 'none';
   }
 
   // --- Required Preview Step ---
@@ -1876,7 +1629,7 @@ function createImprovedBehaviorForm() {
                    document.querySelectorAll('.quick-action-button').forEach(btn => {
                      btn.classList.remove('selected');
                    });
-                   // Show the opening/closing pickers for Stop & Think only
+                   // Show the optional opening/closing for Stop & Think only
                    updateMessageToneVisibility();
                }
            });
@@ -1935,7 +1688,6 @@ function createImprovedBehaviorForm() {
 
                       // Add this line to update suggestions with the new student name
                       updateCommentSuggestions();
-                      renderTemplateChips(); // Student name came from the Directory, re-render templates
                   } else if (result && result.suggestions && Array.isArray(result.suggestions) && result.suggestions.length > 0) {
                        // --- Suggestion Handling ---
                        clearStudentParentFields(); // Ensure fields are clear if suggestions shown
@@ -2056,7 +1808,7 @@ function createImprovedBehaviorForm() {
               location: document.getElementById('location').value.trim(), // Reads from hidden input updated by buttons
               comments: document.getElementById('comments').value.trim(),
               openingMessage: document.getElementById('openingMessage').value.trim(),
-              closingTemplateId: document.getElementById('closingTemplateId').value,
+              closingMessage: document.getElementById('closingMessage').value.trim(),
               ccAdmins: document.getElementById('ccAdmins').checked
           };
 
@@ -2070,10 +1822,6 @@ function createImprovedBehaviorForm() {
            if (formData.parent2Email && formData.parent2Email.indexOf('@') === -1 && formData.parent2Email !== '') errors.push("Parent 2 Email format appears invalid.");
            if (formData.selectedPillars.length === 0) errors.push("Please select at least one Character Pillar.");
            if (formData.selectedBehaviors.length === 0) errors.push("Please select at least one Specific Behavior.");
-           if (formData.behaviorType === 'stopthink') {
-               if (!formData.openingMessage) errors.push("Please choose an Opening Message.");
-               if (!formData.closingTemplateId) errors.push("Please choose a Closing Message.");
-           }
            // Check location - hidden input should have value if button selected or 'Other' text entered
            if (!formData.location && document.querySelector('.location-buttons .location-btn.active')) {
                // This handles the case where 'Other' is active but text is empty
@@ -2121,7 +1869,6 @@ function createImprovedBehaviorForm() {
        // Listen for changes to student first name to update suggestions
        document.getElementById('studentFirst').addEventListener('input', function() {
            updateCommentSuggestions();
-           renderTemplateChips(); // Keep template wording on the current student's name
        });
 
        // Preview modal controls
@@ -2505,7 +2252,6 @@ function createImprovedBehaviorForm() {
 function previewEmailBody(formData) {
   loadConstants();
   loadPillarsData();
-  loadEmailTemplates();
 
   try {
     if (!formData || !formData.studentFirst || !formData.studentLast) {
@@ -2527,7 +2273,7 @@ function previewEmailBody(formData) {
     const comments = formData.comments || "";
 
     const openingMessage = formData.openingMessage || "";
-    const closingMessage = resolveClosingMessage(formData.closingTemplateId, studentFirst);
+    const closingMessage = formData.closingMessage || "";
 
     let body;
     let subject;
@@ -2590,7 +2336,6 @@ function previewEmailBody(formData) {
 function processWebAppForm(formData) {
   loadConstants();
   loadPillarsData();
-  loadEmailTemplates();
   try {
     Logger.log("Received form data: " + JSON.stringify(formData));
 
@@ -2626,14 +2371,6 @@ function processWebAppForm(formData) {
     if (!formData.selectedBehaviors || formData.selectedBehaviors.length === 0) {
       return { success: false, message: "At least one Behavior must be selected." };
     }
-    if (formData.behaviorType === "stopthink") {
-      if (!formData.openingMessage || formData.openingMessage.trim() === "") {
-        return { success: false, message: "An Opening Message must be selected." };
-      }
-      if (!formData.closingTemplateId) {
-        return { success: false, message: "A Closing Message must be selected." };
-      }
-    }
     // --- END NEW ---
 
 
@@ -2652,10 +2389,9 @@ function processWebAppForm(formData) {
     const selectedBehaviors = formData.selectedBehaviors || []; // Array of behavior strings
     const location = formData.location || ""; // Single location field now
     const comments = formData.comments || "";
-    // The opening is the teacher's own (possibly edited) text. The closing is
-    // resolved from its template id so the admin-approved wording is what sends.
+    // Optional Stop & Think opening and closing, in the teacher's own words
     const openingMessage = formData.openingMessage || "";
-    const closingMessage = resolveClosingMessage(formData.closingTemplateId, studentFirst);
+    const closingMessage = formData.closingMessage || "";
     // --- END NEW ---
 
     // Extract CC option

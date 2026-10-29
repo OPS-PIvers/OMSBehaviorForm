@@ -26,8 +26,7 @@ const DEFAULT_CONSTANTS = {
     POSITIVE_BEHAVIORS: "PositiveBehaviors",
     POSITIVE_RECOGNITION: "PositiveRecognitionExamples",
     NEGATIVE_BEHAVIORS: "NegativeBehaviors",
-    LEARNING_FOCUS: "LearningFocus",
-    EMAIL_TEMPLATES: "EmailTemplates"
+    LEARNING_FOCUS: "LearningFocus"
   },
   ADMIN_EMAILS: {
     PRINCIPAL: "[Please enter a valid email]",
