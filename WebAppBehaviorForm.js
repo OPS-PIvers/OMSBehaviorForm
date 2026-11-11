@@ -426,6 +426,25 @@ function createImprovedBehaviorForm() {
     .checkbox-group { margin-top: 4px; }
     .checkbox-label { display: inline-flex; align-items: center; margin-right: 20px; font-weight: 400; font-size: 15px; cursor: pointer; }
     .checkbox-label input { margin-right: 8px; cursor: pointer; width: 18px; height: 18px; accent-color: var(--ops-blue-700); }
+    .email-chip-field {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; min-height: 44px; box-sizing: border-box;
+      border: 1.5px solid var(--ops-gray-300); border-radius: 8px; background: #ffffff; cursor: text; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .email-chip-field:focus-within { border-color: var(--ops-blue-600); box-shadow: 0 0 0 3px var(--ops-focus-ring); }
+    .email-chip-list { display: contents; }
+    .email-chip-field input[type="email"] { flex: 1 1 220px; min-width: 0; border: 0; padding: 6px 4px; box-shadow: none; }
+    .email-chip-field input[type="email"]:focus, .email-chip-field input[type="email"]:hover { border: 0; box-shadow: none; }
+    .email-chip {
+      display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 4px 4px 4px 10px; border-radius: 9999px;
+      background: var(--ops-blue-100); color: var(--ops-blue-900); font-size: 14px; overflow-wrap: anywhere;
+    }
+    .email-chip button {
+      border: 0; background: transparent; color: var(--ops-blue-700); cursor: pointer; font-size: 16px; line-height: 1;
+      width: 24px; height: 24px; border-radius: 9999px; flex-shrink: 0;
+    }
+    .email-chip button:hover { background: var(--ops-blue-200); }
+    .email-chip-error { color: var(--ops-red-700); font-size: 13px; margin-top: 6px; min-height: 0; }
+    .email-chip-error:empty { display: none; }
     .admin-cc-options { background-color: var(--ops-gray-100); padding: 16px; border-radius: 8px; margin-top: 0; }
 
     /* --- Comment Suggestions --- */
@@ -678,6 +697,27 @@ function createImprovedBehaviorForm() {
               <label class="checkbox-label"><input type="checkbox" id="ccAdmins" name="ccAdmins"> Check the box to CC building admin on this email to parent(s).</label>
             </div>
             <div class="note-box">When checked, both the Principal and Associate Principal will be copied on the email. A daily summary of all submissions will be sent to administrators regardless of this setting.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 8: Staff CC -->
+      <div class="form-section" id="section-staff-cc">
+        <h2>CC Other Staff (Optional)</h2>
+        <div class="section-content">
+          <div class="form-group form-group-full">
+            <div class="checkbox-group">
+              <label class="checkbox-label"><input type="checkbox" id="ccStaff" name="ccStaff"> CC another staff member on this email to parent(s).</label>
+            </div>
+            <div id="staffCcFields" style="display: none; margin-top: 12px;">
+              <label for="staffCcInput">Staff email addresses</label>
+              <div class="email-chip-field" id="staffCcField">
+                <span id="staffCcChips" class="email-chip-list"></span>
+                <input type="email" id="staffCcInput" autocomplete="off" placeholder="Type a staff email, then press Enter or Tab">
+              </div>
+              <div class="email-chip-error" id="staffCcError" role="alert"></div>
+              <div class="note-box">Press Enter or Tab after each address to add another. Only school staff addresses can be copied.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1486,8 +1526,9 @@ function createImprovedBehaviorForm() {
     currentBehaviorType = 'goodnews';
     updateMessageToneVisibility(); // Hides the Stop & Think opening/closing section
     
-    // Reset CC checkboxes to default (checked)
+    // Reset CC checkboxes to default (unchecked)
     document.getElementById('ccAdmins').checked = false;
+    resetStaffCc();
     
     // Clear student/parent fields
     clearStudentParentFields();
@@ -1512,6 +1553,110 @@ function createImprovedBehaviorForm() {
       section.style.display = currentBehaviorType === 'stopthink' ? '' : 'none';
   }
 
+  // --- Staff CC ---
+
+  // Addresses the teacher has added as chips. Kept lowercase and unique.
+  let staffCcEmails = [];
+
+  function isLikelyEmail(value) {
+      return /^[^@ ,;]+@[^@ ,;]+[.][^@ ,;]+$/.test(value);
+  }
+
+  function setStaffCcError(message) {
+      document.getElementById('staffCcError').textContent = message || '';
+  }
+
+  function renderStaffCcChips() {
+      const list = document.getElementById('staffCcChips');
+      list.innerHTML = '';
+      staffCcEmails.forEach(function(email, index) {
+          const chip = document.createElement('span');
+          chip.className = 'email-chip';
+          const text = document.createElement('span');
+          text.textContent = email;
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = '×';
+          remove.setAttribute('aria-label', 'Remove ' + email);
+          remove.addEventListener('click', function() {
+              staffCcEmails.splice(index, 1);
+              renderStaffCcChips();
+              document.getElementById('staffCcInput').focus();
+          });
+          chip.appendChild(text);
+          chip.appendChild(remove);
+          list.appendChild(chip);
+      });
+  }
+
+  /**
+   * Moves whatever is typed in the staff CC box into a chip.
+   * Returns false (and shows why) if the text isn't a usable address.
+   */
+  function commitStaffCcInput() {
+      const input = document.getElementById('staffCcInput');
+      const parts = input.value.split(/[ ,;]+/).filter(function(p) { return p !== ''; });
+      if (parts.length === 0) { input.value = ''; return true; }
+
+      const invalid = [];
+      parts.forEach(function(part) {
+          const email = part.toLowerCase();
+          if (!isLikelyEmail(email)) { invalid.push(part); return; }
+          if (staffCcEmails.indexOf(email) === -1) staffCcEmails.push(email);
+      });
+      renderStaffCcChips();
+      input.value = invalid.join(', ');
+      if (invalid.length) {
+          setStaffCcError('"' + invalid.join(', ') + '" is not a valid email address.');
+          return false;
+      }
+      setStaffCcError('');
+      return true;
+  }
+
+  function updateStaffCcVisibility() {
+      const checked = document.getElementById('ccStaff').checked;
+      document.getElementById('staffCcFields').style.display = checked ? '' : 'none';
+      if (checked) document.getElementById('staffCcInput').focus();
+  }
+
+  function resetStaffCc() {
+      staffCcEmails = [];
+      document.getElementById('ccStaff').checked = false;
+      document.getElementById('staffCcInput').value = '';
+      setStaffCcError('');
+      renderStaffCcChips();
+      updateStaffCcVisibility();
+  }
+
+  function initStaffCc() {
+      const input = document.getElementById('staffCcInput');
+      document.getElementById('ccStaff').addEventListener('change', updateStaffCcVisibility);
+      document.getElementById('staffCcField').addEventListener('click', function(e) {
+          if (e.target === this) input.focus();
+      });
+      input.addEventListener('keydown', function(e) {
+          const hasText = input.value.trim() !== '';
+          if (e.key === 'Enter' || e.key === ',' || e.key === ';' || (e.key === 'Tab' && !e.shiftKey && hasText)) {
+              // Enter must never submit the form from here; Tab with text adds
+              // the address and keeps focus here so another can be typed.
+              // Tab on an empty box moves on as usual.
+              e.preventDefault();
+              commitStaffCcInput();
+          } else if (e.key === 'Backspace' && !hasText && staffCcEmails.length) {
+              staffCcEmails.pop();
+              renderStaffCcChips();
+          }
+      });
+      input.addEventListener('input', function() { setStaffCcError(''); });
+      input.addEventListener('paste', function() { setTimeout(commitStaffCcInput, 0); });
+  }
+
+  /** Staff addresses to CC, or [] when the option is off. */
+  function getStaffCcEmails() {
+      return document.getElementById('ccStaff').checked ? staffCcEmails.slice() : [];
+  }
+
   // --- Required Preview Step ---
 
   /**
@@ -1527,8 +1672,15 @@ function createImprovedBehaviorForm() {
           'Sending as you, from your school Gmail account' + (preview.senderEmail ? ' (' + preview.senderEmail + ')' : '');
 
       const ccNotice = document.getElementById('previewCcNotice');
+      const ccLines = [];
       if (preview.ccList && preview.ccList.length) {
-          ccNotice.textContent = 'Administrators will be copied: ' + preview.ccList.join(', ');
+          ccLines.push('Administrators will be copied: ' + preview.ccList.join(', '));
+      }
+      if (preview.staffCcList && preview.staffCcList.length) {
+          ccLines.push('Staff will be copied: ' + preview.staffCcList.join(', '));
+      }
+      if (ccLines.length) {
+          ccNotice.textContent = ccLines.join(' · ');
           ccNotice.style.display = '';
       } else {
           ccNotice.textContent = '';
@@ -1809,11 +1961,21 @@ function createImprovedBehaviorForm() {
               comments: document.getElementById('comments').value.trim(),
               openingMessage: document.getElementById('openingMessage').value.trim(),
               closingMessage: document.getElementById('closingMessage').value.trim(),
-              ccAdmins: document.getElementById('ccAdmins').checked
+              ccAdmins: document.getElementById('ccAdmins').checked,
+              staffCcEmails: []
           };
 
            // --- Client-Side Validation ---
            let errors = [];
+           // Pick up an address that was typed but not yet turned into a chip
+           if (document.getElementById('ccStaff').checked && !commitStaffCcInput()) {
+               errors.push("A staff CC email address is not valid. Fix or remove it.");
+           }
+           formData.staffCcEmails = getStaffCcEmails();
+           if (document.getElementById('ccStaff').checked && formData.staffCcEmails.length === 0 &&
+               document.getElementById('staffCcInput').value.trim() === '') {
+               errors.push("Add a staff email to CC, or uncheck the staff CC box.");
+           }
            if (!formData.studentFirst) errors.push("Student First Name is required.");
            if (!formData.studentLast) errors.push("Student Last Name is required.");
            if (!formData.teacherName) errors.push("Your Name is required.");
@@ -1880,6 +2042,10 @@ function createImprovedBehaviorForm() {
 
        // Set the initial visibility of the opening/closing section
        updateMessageToneVisibility();
+
+       // Staff CC chip input (hidden until its checkbox is ticked)
+       initStaffCc();
+       updateStaffCcVisibility();
   }); // End DOMContentLoaded
 
   /**
@@ -2240,6 +2406,43 @@ function createImprovedBehaviorForm() {
  * Fixed to properly store parent names in cache
  */
 /**
+ * Checks the staff addresses a teacher chose to CC. Each must be a well-formed
+ * address on the teacher's own domain, so a student's email can't be copied to
+ * someone outside the school. Used by both previewEmailBody and processWebAppForm
+ * so the preview shows exactly who will be copied.
+ *
+ * @param {Object} formData Payload with an optional staffCcEmails array.
+ * @returns {Object} { list: string[], error: string } error is "" when valid.
+ */
+function getValidatedStaffCcList(formData) {
+  const raw = Array.isArray(formData.staffCcEmails) ? formData.staffCcEmails : [];
+  let domain = "";
+  try {
+    const me = Session.getActiveUser().getEmail() || "";
+    domain = me.indexOf('@') !== -1 ? me.split('@')[1].toLowerCase() : "";
+  } catch (e) {
+    Logger.log("Could not read the active user's email to check staff CC domain: " + e.toString());
+  }
+
+  const list = [];
+  for (let i = 0; i < raw.length; i++) {
+    const email = String(raw[i] || "").trim().toLowerCase();
+    if (!email) continue;
+    if (!/^[^@\s,;]+@[^@\s,;]+\.[^@\s,;]+$/.test(email)) {
+      return { list: [], error: '"' + email + '" is not a valid staff email address.' };
+    }
+    if (domain && email.split('@')[1] !== domain) {
+      return { list: [], error: '"' + email + '" is not a school address. Only @' + domain + ' staff can be copied.' };
+    }
+    if (list.indexOf(email) === -1) list.push(email);
+  }
+  if (list.length > 10) {
+    return { list: [], error: "You can CC at most 10 staff members on one email." };
+  }
+  return { list: list, error: "" };
+}
+
+/**
  * Builds a preview of the email a submission would send, without sending anything
  * or writing anything to the sheet.
  *
@@ -2247,7 +2450,7 @@ function createImprovedBehaviorForm() {
  * the preview cannot drift from the real email.
  *
  * @param {Object} formData The same payload processWebAppForm() receives.
- * @returns {Object} { success, subject, recipients, ccList, senderEmail, body }
+ * @returns {Object} { success, subject, recipients, ccList, staffCcList, senderEmail, body }
  */
 function previewEmailBody(formData) {
   loadConstants();
@@ -2312,6 +2515,11 @@ function previewEmailBody(formData) {
       if (CONFIG.ADMIN_EMAILS.ASSOCIATE_PRINCIPAL) ccList.push(CONFIG.ADMIN_EMAILS.ASSOCIATE_PRINCIPAL);
     }
 
+    const staffCc = getValidatedStaffCcList(formData);
+    if (staffCc.error) {
+      return { success: false, message: staffCc.error };
+    }
+
     let senderEmail = "";
     try {
       senderEmail = Session.getActiveUser().getEmail();
@@ -2324,6 +2532,7 @@ function previewEmailBody(formData) {
       subject: subject,
       recipients: recipients,
       ccList: ccList,
+      staffCcList: staffCc.list,
       senderEmail: senderEmail,
       body: body
     };
@@ -2406,6 +2615,15 @@ function processWebAppForm(formData) {
       if (CONFIG.ADMIN_EMAILS.PRINCIPAL) ccList.push(CONFIG.ADMIN_EMAILS.PRINCIPAL);
       if (CONFIG.ADMIN_EMAILS.ASSOCIATE_PRINCIPAL) ccList.push(CONFIG.ADMIN_EMAILS.ASSOCIATE_PRINCIPAL);
     }
+
+    // Staff the teacher chose to copy (validated the same way as the preview)
+    const staffCc = getValidatedStaffCcList(formData);
+    if (staffCc.error) {
+      return { success: false, message: staffCc.error };
+    }
+    staffCc.list.forEach(function(email) {
+      if (ccList.indexOf(email) === -1) ccList.push(email);
+    });
 
 
     // --- Pass selectedPillars array to email functions ---
